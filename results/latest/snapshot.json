@@ -1,0 +1,27 @@
+{
+ "run_date": "2026-08-26",
+ "quarter": "CY2026Q2",
+ "prior": "CY2025Q2",
+ "coverage_rev_cur": {
+  "RevenueFromContractWithCustomerExcludingAssessedTax": 2154,
+  "Revenues": 1554,
+  "SalesRevenueNet": 0
+ },
+ "coverage_rev_prior": {
+  "RevenueFromContractWithCustomerExcludingAssessedTax": 2548,
+  "Revenues": 1920,
+  "SalesRevenueNet": 0
+ },
+ "n_rev_merged": 3302,
+ "n_op": 3730,
+ "n_ni": 4645,
+ "n_universe": 1876,
+ "n_pool": 365,
+ "params": {
+  "min_rev": "20M",
+  "min_op": "3M",
+  "s1": "yoy>=30% & opg>=40%",
+  "s2": "op turn, op>=3M",
+  "s3": "dm>=7pp"
+ }
+}
