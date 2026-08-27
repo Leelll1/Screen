@@ -1,0 +1,34 @@
+name: threshold-lab
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  lab:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run threshold lab
+        env:
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+          KRX_AUTH_KEY: ${{ secrets.KRX_AUTH_KEY }}
+        run: python threshold_lab.py
+      - name: Commit results
+        run: |
+          git config user.name "lab-bot"
+          git config user.email "actions@github.com"
+          git add data/backtest/
+          git diff --cached --quiet && exit 0
+          git commit -m "threshold-lab $(date -u +%F)"
+          for i in 1 2 3; do
+            git push && exit 0
+            git pull --rebase && sleep $((i*5))
+          done
+          git push
