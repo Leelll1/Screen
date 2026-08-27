@@ -1,0 +1,29 @@
+name: backtest
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Run backtest
+        env:
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+          KRX_AUTH_KEY: ${{ secrets.KRX_AUTH_KEY }}
+        run: python backtest.py
+      - name: Commit results
+        run: |
+          git config user.name "bt-bot"
+          git config user.email "actions@github.com"
+          git add data/backtest/
+          git diff --cached --quiet || git commit -m "backtest $(date -u +%F)"
+          git push
