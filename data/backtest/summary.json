@@ -1,0 +1,188 @@
+{
+ "kospi_source": "yahoo 7313+krx 4098",
+ "us_leg": true,
+ "kr_span": [
+  "1996-12-11",
+  "2026-08-27",
+  7318
+ ],
+ "us_span": [
+  "1996-06-03",
+  "2026-08-27",
+  7608
+ ],
+ "US": {
+  "L1ONLY": {
+   "events_with_rain_before": 0,
+   "events_total": 12,
+   "rain_episodes": 0,
+   "episodes_hit": 0,
+   "false_alarm_rate": null,
+   "state_days_pct": {
+    "0": 63.6,
+    "1": 36.4,
+    "2": 0.0,
+    "3": 0.0
+   },
+   "transitions": 138
+  },
+  "FULL": {
+   "events_with_rain_before": 8,
+   "events_total": 12,
+   "rain_episodes": 13,
+   "episodes_hit": 8,
+   "false_alarm_rate": 0.38,
+   "state_days_pct": {
+    "0": 57.6,
+    "1": 33.8,
+    "2": 5.5,
+    "3": 3.0
+   },
+   "transitions": 160
+  }
+ },
+ "KR": {
+  "L1ONLY": {
+   "events_with_rain_before": 0,
+   "events_total": 23,
+   "rain_episodes": 0,
+   "episodes_hit": 0,
+   "false_alarm_rate": null,
+   "state_days_pct": {
+    "0": 64.0,
+    "1": 36.0,
+    "2": 0.0,
+    "3": 0.0
+   },
+   "transitions": 142
+  },
+  "MECH": {
+   "events_with_rain_before": 10,
+   "events_total": 23,
+   "rain_episodes": 21,
+   "episodes_hit": 3,
+   "false_alarm_rate": 0.86,
+   "state_days_pct": {
+    "0": 61.8,
+    "1": 30.2,
+    "2": 3.7,
+    "3": 4.2
+   },
+   "transitions": 185
+  },
+  "FULL": {
+   "events_with_rain_before": 15,
+   "events_total": 23,
+   "rain_episodes": 31,
+   "episodes_hit": 14,
+   "false_alarm_rate": 0.55,
+   "state_days_pct": {
+    "0": 53.4,
+    "1": 28.4,
+    "2": 10.7,
+    "3": 7.5
+   },
+   "transitions": 209
+  },
+  "FULL_X": {
+   "events_with_rain_before": 15,
+   "events_total": 23,
+   "rain_episodes": 31,
+   "episodes_hit": 14,
+   "false_alarm_rate": 0.55,
+   "state_days_pct": {
+    "0": 53.4,
+    "1": 28.4,
+    "2": 10.7,
+    "3": 7.5
+   },
+   "transitions": 209
+  }
+ },
+ "coupling": {
+  "KR사건_중_KR단독": 9,
+  "KR사건_총": 23,
+  "US사건_중_US단독": 0,
+  "US사건_총": 12
+ },
+ "hunt_KR_A": {
+  "trades": 4,
+  "per_year": 0.14,
+  "win_rate": 1.0,
+  "avg_ret_pct": 11.46,
+  "median_ret_pct": 20.58,
+  "worst_pct": 0.57,
+  "best_pct": 21.19,
+  "sum_ret_pct": 45.84,
+  "stop_mix": {
+   "가격": 0,
+   "논리": 0,
+   "시간": 4,
+   "기말": 0
+  }
+ },
+ "hunt_KR_B": {
+  "trades": 11,
+  "per_year": 0.38,
+  "win_rate": 0.55,
+  "avg_ret_pct": 2.94,
+  "median_ret_pct": 0.57,
+  "worst_pct": -11.51,
+  "best_pct": 21.19,
+  "sum_ret_pct": 32.37,
+  "stop_mix": {
+   "가격": 0,
+   "논리": 5,
+   "시간": 6,
+   "기말": 0
+  }
+ },
+ "hunt_KR_CHASE": {
+  "trades": 26,
+  "per_year": 0.9,
+  "win_rate": 0.46,
+  "avg_ret_pct": -0.73,
+  "median_ret_pct": -0.55,
+  "worst_pct": -34.26,
+  "best_pct": 22.11,
+  "sum_ret_pct": -18.89,
+  "stop_mix": {
+   "가격": 0,
+   "논리": 8,
+   "시간": 18,
+   "기말": 0
+  }
+ },
+ "hunt_US_B": {
+  "trades": 10,
+  "per_year": 0.33,
+  "win_rate": 0.4,
+  "avg_ret_pct": 1.03,
+  "median_ret_pct": -0.26,
+  "worst_pct": -5.19,
+  "best_pct": 12.14,
+  "sum_ret_pct": 10.27,
+  "stop_mix": {
+   "가격": 2,
+   "논리": 2,
+   "시간": 6,
+   "기말": 0
+  }
+ },
+ "hunt_US_CHASE": {
+  "trades": 10,
+  "per_year": 0.33,
+  "win_rate": 0.6,
+  "avg_ret_pct": 3.2,
+  "median_ret_pct": 5.21,
+  "worst_pct": -16.28,
+  "best_pct": 24.73,
+  "sum_ret_pct": 32.02,
+  "stop_mix": {
+   "가격": 0,
+   "논리": 4,
+   "시간": 6,
+   "기말": 0
+  }
+ }
+}
