@@ -1,0 +1,8 @@
+service,label,status,rows,basDd,run_utc
+sto/stk_bydd_trd,유가증권 일별 매매정보,HTTP 401,0,20260826,2026-08-27T12:40:01
+sto/ksq_bydd_trd,코스닥 일별 매매정보,HTTP 401,0,20260826,2026-08-27T12:40:01
+idx/krx_dd_trd,KRX 지수 일별시세,HTTP 401,0,20260826,2026-08-27T12:40:01
+idx/kospi_dd_trd,KOSPI 지수 일별시세,HTTP 401,0,20260826,2026-08-27T12:40:01
+idx/kosdaq_dd_trd,KOSDAQ 지수 일별시세,HTTP 401,0,20260826,2026-08-27T12:40:01
+drv/fut_bydd_trd,선물 일별 매매정보,HTTP 401,0,20260826,2026-08-27T12:40:01
+drv/opt_bydd_trd,옵션 일별 매매정보,HTTP 401,0,20260826,2026-08-27T12:40:01
