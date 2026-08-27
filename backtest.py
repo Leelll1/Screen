@@ -14,7 +14,7 @@ v1 → v2 (2026-08-27, 사용자 설계 질문 반영):
 실행: GitHub Actions (Secrets: FRED_API_KEY, KRX_AUTH_KEY). 표준 라이브러리만.
 출력: data/backtest/ 소형 CSV·JSON.
 """
-import os, json, csv, datetime, urllib.request, time
+import os, json, csv, datetime, urllib.request, urllib.parse, time
 
 OUT = "data/backtest"
 FRED_KEY = os.environ.get("FRED_API_KEY", "")
@@ -38,6 +38,33 @@ def fred_series(sid):
             out[o["date"]] = float(o["value"])
     print(f"FRED {sid}: {len(out)} obs ({min(out)}..{max(out)})")
     return out
+
+def get_yahoo(symbol, label, min_rows=3000):
+    """야후 파이낸스 차트 API — 전 기간 일별 OHLC."""
+    url = (f"https://query1.finance.yahoo.com/v8/finance/chart/"
+           f"{urllib.parse.quote(symbol)}?range=max&interval=1d")
+    data = json.loads(http_get(url))
+    res = data["chart"]["result"][0]
+    ts = res["timestamp"]; q = res["indicators"]["quote"][0]
+    off = res.get("meta", {}).get("gmtoffset", 0)
+    out = {}
+    for i, t in enumerate(ts):
+        c = q["close"][i]
+        if c is None: continue
+        d = datetime.datetime.fromtimestamp(t + off,
+                                            datetime.timezone.utc).date().isoformat()
+        out[d] = (q["open"][i] or c, q["high"][i] or c, q["low"][i] or c, c)
+    if len(out) < min_rows:
+        raise RuntimeError(f"yahoo {symbol} rows too few: {len(out)}")
+    print(f"{label}(yahoo): {len(out)} days ({min(out)}..{max(out)})")
+    return out
+
+def get_price_chain(yahoo_sym, stooq_sym, label, min_rows=3000):
+    try:
+        return get_yahoo(yahoo_sym, label, min_rows), "yahoo"
+    except Exception as e:
+        print(f"yahoo {label} 실패({e}) → stooq 시도")
+    return get_stooq(stooq_sym, label, min_rows), "stooq"
 
 def get_stooq(symbol, label, min_rows=3000):
     raw = http_get(f"https://stooq.com/q/d/l/?s={symbol}&i=d").decode()
@@ -82,6 +109,13 @@ def get_kospi_krx():
                                                   fnum(r.get("HGPRC_IDX")) or c,
                                                   fnum(r.get("LWPRC_IDX")) or c, c)
                 errs = 0
+            except urllib.error.HTTPError as e:
+                if e.code in (401, 403):
+                    raise RuntimeError(
+                        "KRX가 과거 날짜 조회를 거부(HTTP %d) — 이용 신청 '기간 선택' "
+                        "범위 제한으로 추정. 야후/Stooq 경로 복구가 필요합니다" % e.code)
+                errs += 1
+                if errs > 60: raise RuntimeError("KRX kospi backfill failed")
             except Exception:
                 errs += 1
                 if errs > 60: raise RuntimeError("KRX kospi backfill failed")
@@ -91,32 +125,42 @@ def get_kospi_krx():
     return out
 
 def get_vkospi():
+    """V-KOSPI — 오늘부터 뒤로 걸으며 허용 범위 끝(403 벽)까지 수확.
+    KRX 이용 신청의 '기간 선택'이 조회 가능 범위일 수 있어(1M 실측 403), 벽을
+    만나면 정상 종료하고 확보분만 쓴다. 캐시로 재실행 시 증분만 수집."""
     path = f"{OUT}/vkospi_daily.csv"; out = {}
     if os.path.exists(path):
         with open(path, newline="") as f:
             for r in csv.DictReader(f):
                 out[r["date"]] = float(r["close"])
-    start = datetime.date(2010, 1, 4)
-    if out:
-        start = datetime.date.fromisoformat(max(out)) + datetime.timedelta(days=1)
-    d, today, errs, calls = start, datetime.date.today(), 0, 0
-    while d <= today:
-        if d.weekday() < 5:
+    d = datetime.date.today(); floor = datetime.date(2010, 1, 4)
+    deny = 0; errs = 0; calls = 0
+    while d >= floor:
+        if d.weekday() < 5 and d.isoformat() not in out:
             try:
                 for r in krx_call("idx/drvprod_dd_trd", d.strftime("%Y%m%d")):
                     if "변동성" in str(r.get("IDX_NM", "")):
                         c = fnum(r.get("CLSPRC_IDX"))
                         if c: out[d.isoformat()] = c
                         break
-                errs = 0
+                deny = errs = 0
+            except urllib.error.HTTPError as e:
+                if e.code in (401, 403):
+                    deny += 1
+                    if deny >= 5:
+                        print(f"V-KOSPI: {d} 이전은 KRX가 거부(HTTP {e.code}) — "
+                              "이용 신청 '기간 선택'의 조회 범위 제한으로 추정. "
+                              f"확보 {len(out)}일로 진행"); break
+                else:
+                    errs += 1
+                    if errs > 30: print(f"V-KOSPI 중단(오류 누적): {d}"); break
             except Exception:
                 errs += 1
-                if errs > 60:
-                    print(f"V-KOSPI 수집 중단(연속 오류): {d} 이후 결측"); break
+                if errs > 30: print(f"V-KOSPI 중단(오류 누적): {d}"); break
             calls += 1
             if calls % 500 == 0: print(f"  vkospi … {d} ({len(out)} rows)")
             time.sleep(0.12)
-        d += datetime.timedelta(days=1)
+        d -= datetime.timedelta(days=1)
     os.makedirs(OUT, exist_ok=True)
     with open(path, "w", newline="") as f:
         w = csv.writer(f); w.writerow(["date", "close"])
@@ -478,13 +522,14 @@ def main():
         src = "offline"
     else:
         try:
-            kospi = get_stooq("%5Ekospi", "KOSPI"); src = "stooq"
+            kospi, src = get_price_chain("^KS11", "%5Ekospi", "KOSPI")
         except Exception as e:
-            print(f"stooq KOSPI 실패({e}) → KRX 폴백"); kospi = get_kospi_krx(); src = "krx2010"
+            print(f"KOSPI 가격 소스 전부 실패({e}) → KRX 최후 폴백")
+            kospi = get_kospi_krx(); src = "krx"
         try:
-            spx = get_stooq("%5Espx", "S&P500", 6000)
+            spx, _ = get_price_chain("^GSPC", "%5Espx", "S&P500", 6000)
         except Exception as e:
-            print(f"stooq SPX 실패({e}) → 미국 편 생략"); spx = None
+            print(f"SPX 소스 실패({e}) → 미국 편 생략"); spx = None
         fred = {sid: fred_series(sid) for sid in
                 ["VIXCLS", "BAMLH0A0HYM2", "T10Y2Y", "DEXKOUS"]}
         vkospi = get_vkospi()
