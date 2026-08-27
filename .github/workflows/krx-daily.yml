@@ -1,0 +1,30 @@
+name: krx-daily
+
+on:
+  schedule:
+    # 월~금 22:20 UTC = 화~토 07:20 KST (조기경보 08:00 회차 전에 완료)
+    - cron: "20 22 * * 1-5"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Fetch KRX data
+        env:
+          KRX_AUTH_KEY: ${{ secrets.KRX_AUTH_KEY }}
+        run: python krx_fetch.py
+      - name: Commit results
+        run: |
+          git config user.name "krx-bot"
+          git config user.email "actions@github.com"
+          git add results/krx/
+          git diff --cached --quiet || git commit -m "krx $(date -u +%F)"
+          git push
