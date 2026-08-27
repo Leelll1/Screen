@@ -16,7 +16,7 @@ v1 → v2 변경 (2026-08-27):
 import os, json, csv, datetime, urllib.request
 
 KEY = os.environ["KRX_AUTH_KEY"]
-BASE = "http://data-dbg.krx.co.kr/svc/apis/"
+BASE = "https://data-dbg.krx.co.kr/svc/apis/"  # 공식 명세서 기준 https (2026-08-27)
 
 # ── 일일 수집 서비스 (매 실행) ─────────────────────────────────────────────
 DAILY = [
@@ -93,11 +93,14 @@ def compute_ews(rows):
     def idx_close(block, name):
         for r in block:
             if str(r.get("IDX_NM", "")).strip() == name:
-                return fnum(r.get("CLSPRC_IDX")), fnum(r.get("FLUC_RT"))
-        return None, None
-    m["kospi_close"], m["kospi_chg_rt"] = idx_close(g("idx/kospi_dd_trd"), "코스피")
-    m["kospi200_close"], _ = idx_close(g("idx/kospi_dd_trd"), "코스피 200")
-    m["kosdaq_close"], m["kosdaq_chg_rt"] = idx_close(g("idx/kosdaq_dd_trd"), "코스닥")
+                return (fnum(r.get("CLSPRC_IDX")), fnum(r.get("FLUC_RT")),
+                        fnum(r.get("ACC_TRDVAL")))
+        return None, None, None
+    m["kospi_close"], m["kospi_chg_rt"], tv = idx_close(g("idx/kospi_dd_trd"), "코스피")
+    if tv is not None: m["kospi_trdval"] = int(tv)   # 거래대금(원) — 사냥 조건② 관측용
+    m["kospi200_close"], _, _ = idx_close(g("idx/kospi_dd_trd"), "코스피 200")
+    m["kosdaq_close"], m["kosdaq_chg_rt"], tv = idx_close(g("idx/kosdaq_dd_trd"), "코스닥")
+    if tv is not None: m["kosdaq_trdval"] = int(tv)
     # V-KOSPI — 파생상품지수 중 '변동성' 포함 지수
     for r in g("idx/drvprod_dd_trd"):
         if "변동성" in str(r.get("IDX_NM", "")):
@@ -139,7 +142,8 @@ def compute_ews(rows):
     return m
 
 EWS_COLS = ["bas_dd", "kospi_close", "kospi_chg_rt", "kospi200_close",
-            "kosdaq_close", "kosdaq_chg_rt", "vkospi_close", "vkospi_chg_rt",
+            "kosdaq_close", "kosdaq_chg_rt", "kospi_trdval", "kosdaq_trdval",
+            "vkospi_close", "vkospi_chg_rt",
             "adv_cnt", "dec_cnt", "lev_etf_val", "inv_etf_val", "inv2x_etf_val",
             "put_vol", "call_vol", "pcr", "run_utc"]
 
