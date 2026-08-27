@@ -2,8 +2,9 @@ name: us-weekly-screen
 
 on:
   schedule:
+    # 매주 금요일 22:00 UTC = 토요일 07:00 KST (토 09:00 미국 발굴 회차 전에 완료)
     - cron: "0 22 * * 5"
-  workflow_dispatch: {}
+  workflow_dispatch: {}   # 수동 실행 버튼 (검증 회차용)
 
 permissions:
   contents: write
@@ -23,5 +24,10 @@ jobs:
           git config user.name "us-screen-bot"
           git config user.email "actions@github.com"
           git add results/
-          git diff --cached --quiet || git commit -m "screen $(date -u +%F)"
+          git diff --cached --quiet && exit 0
+          git commit -m "screen $(date -u +%F)"
+          for i in 1 2 3; do
+            git push && exit 0
+            git pull --rebase && sleep $((i*5))
+          done
           git push
