@@ -129,6 +129,16 @@ def compute_ews(rows):
             if "2X" in nm.upper(): inv2x += val
     if lev or inv:
         m["lev_etf_val"], m["inv_etf_val"], m["inv2x_etf_val"] = int(lev), int(inv), int(inv2x)
+    # 쏠림도 — 유가+코스닥 상위 2종목 시가총액 비중 (조기경보 L2 관측, 2026-08-28 신설)
+    caps, total = [], 0.0
+    for blk in (g("sto/stk_bydd_trd"), g("sto/ksq_bydd_trd")):
+        for r in blk:
+            v = fnum(r.get("MKTCAP"))
+            if v and v > 0:
+                caps.append(v); total += v
+    if total and len(caps) >= 2:
+        caps.sort(reverse=True)
+        m["top2_mcap_pct"] = round((caps[0] + caps[1]) / total * 100, 2)
     # 풋/콜 거래량 비율 — 옵션 일별매매에서 권리유형 합산
     put = call = 0
     for r in g("drv/opt_bydd_trd"):
@@ -145,7 +155,7 @@ EWS_COLS = ["bas_dd", "kospi_close", "kospi_chg_rt", "kospi200_close",
             "kosdaq_close", "kosdaq_chg_rt", "kospi_trdval", "kosdaq_trdval",
             "vkospi_close", "vkospi_chg_rt",
             "adv_cnt", "dec_cnt", "lev_etf_val", "inv_etf_val", "inv2x_etf_val",
-            "put_vol", "call_vol", "pcr", "run_utc"]
+            "top2_mcap_pct", "put_vol", "call_vol", "pcr", "run_utc"]
 
 def append_ews(metrics):
     path = "results/krx/ews_daily.csv"

@@ -316,6 +316,70 @@ def run_machine(panel, variant, floor_by_date=None):
         if reason: log.append([row["date"], reason])
     return states, log
 
+# ── v2.0 규칙 조합 (2026-08-28 신설 — 절차서 v2.0 재실증. 사용자 승인) ──
+V2_SPECS = {"V2_L2P":       (False, False),  # L2=포지셔닝 전용(l2e)만 — L2 재편 격리
+            "V2_L2P_RENEW": (True,  False),  # + 상태 갱신 의무제 (기계 근사)
+            "V2_FULL":      (True,  True)}   # + 폭풍 해제 레짐 상대화 = v2.0 전체 조합
+
+def run_machine_v2(panel, renew, rel_release):
+    """v2.0 규칙: L2 = row['l2e'](포지셔닝 전용 — V-KOSPI 기계 근사 l2m 제외).
+    갱신 의무제 근사: 비·폭풍은 승급/심사 후 10세션마다 '새 근거' 심사 —
+      새 근거 = 심사 창 내 L2/L3가 기준치 초과로 악화 또는 신규 -8% 10일 전이.
+      없으면 한 단계 해제(폭풍은 collapse 중이 아닐 때만). 있으면 기준치 갱신 유지.
+    폭풍 해제 상대화: V-KOSPI < 35 절대 → V-KOSPI < (1년 중앙값 + 10)."""
+    s = 0; miss = 0; states = []; log = []
+    vk_hist = []
+    review_i = None; l2_ref = 0; l3_ref = 0
+    for i, row in enumerate(panel):
+        vk = row["vk"]
+        if vk is not None: vk_hist.append(vk)
+        vk_med = None
+        if len(vk_hist) >= 200:
+            w = sorted(vk_hist[-252:]); vk_med = w[len(w)//2]
+        l1 = row["l1"]; l2 = row["l2e"]; l3 = row["l3e"]
+        collapse = row["ret10"] <= -0.08
+        storm = (collapse and l2 >= 1) or (l1 == 2 and l2 == 2)
+        rain = (l2 == 2 and (l1 >= 1 or l3 >= 1)) or (l3 == 2 and l1 >= 1) \
+               or (l1 == 2 and l2 >= 1)
+        cloud = (l1 == 2 or l2 == 2 or l3 == 2) or \
+                (sum(1 for x in (l1, l2, l3) if x >= 1) >= 2)
+        tgt = 3 if storm else 2 if rain else 1 if cloud else 0
+        if tgt > s:
+            s = tgt; miss = 0; review_i = i; l2_ref, l3_ref = l2, l3
+            log.append([row["date"], f"승급->{s} (L1={l1} L2p={l2} L3={l3})"])
+        else:
+            stepped = False
+            if renew and s >= 2 and review_i is not None and i - review_i >= 10:
+                win = range(review_i + 1, i + 1)
+                new_ev = any(panel[j]["l2e"] > l2_ref or panel[j]["l3e"] > l3_ref
+                             or panel[j]["ret10"] <= -0.08 for j in win)
+                if new_ev:
+                    l2_ref = max([l2_ref] + [panel[j]["l2e"] for j in win])
+                    l3_ref = max([l3_ref] + [panel[j]["l3e"] for j in win])
+                    review_i = i
+                    log.append([row["date"], f"갱신심사 유지 {s} (새 근거)"])
+                elif not (s == 3 and collapse):
+                    s -= 1; miss = 0; review_i = i; l2_ref, l3_ref = l2, l3
+                    log.append([row["date"], f"갱신해제 {s+1}->{s} (새 근거 없음 — 레짐 이관)"])
+                    stepped = True
+            if not stepped:
+                cond = {3: storm, 2: rain, 1: cloud, 0: True}[s]
+                miss = 0 if cond else miss + 1
+                if s > 0 and miss >= 10:
+                    ok = True
+                    if s == 3:
+                        if rel_release:
+                            ok = (vk is None or vk_med is None or vk < vk_med + 10) \
+                                 and not collapse
+                        else:
+                            ok = (vk is None or vk < 35) and not collapse
+                    if ok:
+                        s -= 1; miss = 0
+                        if s >= 2: review_i = i; l2_ref, l3_ref = l2, l3
+                        log.append([row["date"], f"해제 {s+1}->{s} (2주 미충족)"])
+        states.append(s)
+    return states, log
+
 # ══════════════════ 4. 사건 탐지·성적표·과잉경보 ══════════════════
 
 def detect_events(panel):
@@ -480,9 +544,13 @@ def analyze(tag, panel, variants, summary, floor=None):
     events = detect_events(panel)
     out_states = {}
     for variant in variants:
-        fl = floor if variant.endswith("_X") else None
-        base = variant.replace("_X", "")
-        states, log = run_machine(panel, base, fl)
+        if variant in V2_SPECS:
+            renew, rel = V2_SPECS[variant]
+            states, log = run_machine_v2(panel, renew, rel)
+        else:
+            fl = floor if variant.endswith("_X") else None
+            base = variant.replace("_X", "")
+            states, log = run_machine(panel, base, fl)
         sc = scorecard(panel, states, events)
         fa = false_alarms(panel, states, events)
         wcsv(f"{OUT}/scorecard_{tag}_{variant}.csv", sc,
@@ -499,6 +567,10 @@ def analyze(tag, panel, variants, summary, floor=None):
             "false_alarm_rate": round(1 - n_hit/n_ep, 2) if n_ep else None,
             "state_days_pct": {k: round(sum(1 for s in states if s == k)/len(states)*100, 1)
                                for k in range(4)},
+            "longest_run": {lvl: max((len(list(g)) for v, g in
+                                      __import__("itertools").groupby(
+                                          [x >= lvl for x in states]) if v), default=0)
+                            for lvl in (2, 3)},   # 최장 비+/폭풍 연속 세션 (잠금 검사)
             "transitions": len(log)}
         out_states[variant] = states
     wcsv(f"{OUT}/events_detected_{tag}.csv",
@@ -572,7 +644,8 @@ def main():
     else:
         floor = None
 
-    kr_variants = ["L1ONLY", "MECH", "FULL"] + (["FULL_X"] if floor else [])
+    kr_variants = ["L1ONLY", "MECH", "FULL"] + (["FULL_X"] if floor else []) \
+                  + ["V2_L2P", "V2_L2P_RENEW", "V2_FULL"]   # v2.0 재실증 (2026-08-28)
     kr_events, kr_states = analyze("KR", kr_panel, kr_variants, summary, floor)
 
     if us_panel:

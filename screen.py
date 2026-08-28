@@ -1,7 +1,13 @@
 # -*- coding: utf-8 -*-
 """
-미국 상향식 스크린 — SEC XBRL frames 전수 스크리닝
-(아키텍처 v2 §5-1 규격 / SEC XBRL 재무 소스 규정 5대 규칙 적용)
+미국 상향식 스크린 — SEC XBRL frames 전수 스크리닝 (아키텍처 v2 §5-1 규격)
+
+적용 규칙의 정확한 범위 (2026-08-28 감사 정정 — 과대 주장 금지):
+  · 적용: 규정 §2 규칙①(매출 태그 폴백 합집합)·②(빈 응답 감지)·④(Q4 frame 금지)
+  · 미적용: 규칙⑤(form 화이트리스트)·§3 filed 기반 PIT 필터 — frames 응답에는
+    form·filed 필드가 없어 구조적으로 적용 불가. PIT는 대신 results/history/의
+    실행 시점 커밋 스냅샷으로 확보된다 (라이브 운용에 유효 — 단 소급 재실행 시
+    재무 재작성(restatement) 누출은 막지 못함. 규정 §5 한계 참조).
 
 GitHub Actions에서 주간 실행된다. 표준 라이브러리만 사용.
 출력: results/latest/*.csv + results/history/<날짜>/ (PIT 스냅샷)
@@ -10,15 +16,20 @@ import json, os, csv, datetime, urllib.request, time, shutil
 
 UA = {"User-Agent": "LeePersonalResearch daybreakz@daum.net"}
 BASE = "https://data.sec.gov/api/xbrl/frames/us-gaap/{tag}/USD/CY{y}Q{q}.json"
+FETCH_FAILURES = []   # 3회 실패한 태그·분기 — snapshot.json에 기록 (fail-open 감시)
 
-# 규칙 ① 매출 태그 폴백 체인 (합집합, 앞선 태그 우선)
+# 규칙 ① 매출 태그 폴백 체인 (합집합, 앞선 태그 우선) — 규정 §2와 일치 (2026-08-28 정정:
+# SalesRevenueNet(2018년 이후 사실상 폐기된 레거시)을 규정 체인의 IncludingAssessedTax로 교체)
 REV_TAGS = ["RevenueFromContractWithCustomerExcludingAssessedTax",
-            "Revenues", "SalesRevenueNet"]
+            "Revenues", "RevenueFromContractWithCustomerIncludingAssessedTax"]
 OP_TAG = "OperatingIncomeLoss"
 NI_TAG = "NetIncomeLoss"
 
 def pick_quarter(today):
-    """실행일 기준 '전수 제출이 끝난' 최신 분기. 규칙 ④: Q4 frame 절대 금지."""
+    """실행일 기준 최신 관측 가능 분기. 규칙 ④: Q4 frame 절대 금지.
+    한계(2026-08-28 명기): 5·8·11월 초 실행은 직전 분기 10-Q 마감(분기말+40~45일)
+    이전이라 커버리지 불완전. 1~4월은 전년 Q3 사용 — Q4 변곡 기업은 최대 7개월
+    늦게 관측된다 (연간 CY 보조 스크린은 미구현)."""
     y, m = today.year, today.month
     if m in (1, 2, 3, 4):   return y - 1, 3   # 전년 Q3 (Q4는 금지, 연간은 별도)
     if m in (5, 6, 7):      return y, 1
@@ -39,7 +50,8 @@ def fetch(tag, y, q):
         except Exception as e:
             print(f"  재시도 {attempt+1}: {tag} CY{y}Q{q}: {e}")
             time.sleep(5)
-    print(f"  실패(3회): {tag} CY{y}Q{q} — 빈 결과로 처리")
+    print(f"  실패(3회): {tag} CY{y}Q{q} — 빈 결과로 처리 (snapshot에 기록)")
+    FETCH_FAILURES.append(f"{tag}@CY{y}Q{q}")
     return {}
 
 def merged_revenue(y, q):
@@ -118,6 +130,7 @@ def main():
             w.writerow([p["cik"], p["name"], "+".join(p["tags"]), round(p["score"], 3),
                         p["rc"], p["rp"], p["oc"], p["op"], p["nc"], p["np"]])
     meta = dict(run_date=str(today), quarter=f"CY{y}Q{q}", prior=f"CY{py}Q{pq}",
+                fetch_failures=FETCH_FAILURES,   # 비어 있지 않으면 이번 회차 결과 불신
                 coverage_rev_cur=cov_c, coverage_rev_prior=cov_p,
                 n_rev_merged=len(rev_c), n_op=len(op_c), n_ni=len(ni_c),
                 n_universe=len(rows), n_pool=len(pool),
