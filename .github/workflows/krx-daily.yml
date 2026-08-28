@@ -3,6 +3,7 @@ name: krx-daily
 on:
   schedule:
     # 월~금 22:20 UTC = 화~토 07:20 KST (조기경보 08:00 회차 전에 완료)
+    - cron: "20 20 * * 1-5"
     - cron: "20 22 * * 1-5"
   workflow_dispatch: {}
 
