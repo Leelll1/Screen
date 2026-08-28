@@ -20,10 +20,27 @@ jobs:
           FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
           KRX_AUTH_KEY: ${{ secrets.KRX_AUTH_KEY }}
         run: python backtest.py
+      # 2026-08-28 교정: 단발 git push가 동시 실행(krx-daily 등)과 충돌하면
+      # 계산을 다 해놓고 결과를 잃는다(backtest #5 실패 실측). 재시도·리베이스 추가.
       - name: Commit results
         run: |
           git config user.name "bt-bot"
           git config user.email "actions@github.com"
           git add data/backtest/
-          git diff --cached --quiet || git commit -m "backtest $(date -u +%F)"
-          git push
+          if git diff --cached --quiet; then
+            echo "변경 없음 — 커밋 생략"
+            exit 0
+          fi
+          git commit -m "backtest $(date -u +%F)"
+          for i in 1 2 3 4 5; do
+            if git push; then
+              echo "push 성공 (시도 $i)"
+              exit 0
+            fi
+            echo "push 거부 — 원격 변경을 받아 재시도 ($i/5)"
+            git pull --rebase origin main || { git rebase --abort || true; }
+            sleep $((i * 5))
+          done
+          echo "5회 재시도 후에도 push 실패 — 결과는 이번 실행 로그에만 남음"
+          exit 1
+
