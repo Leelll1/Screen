@@ -1,5 +1,5 @@
 {
- "kospi_source": "yahoo 7313+krx 4098",
+ "kospi_source": "yahoo 7313+krx 4099",
  "us_leg": true,
  "kr_span": [
   "1996-12-11",
@@ -49,6 +49,33 @@
    "transitions": 160
   }
  },
+ "r3_threshold_scan": {
+  "sessions_scored": 3900,
+  "sessions_rel_looser": 150,
+  "sessions_rel_stricter": 3750,
+  "verdict_diverged": 124,
+  "verdict_diverged_pct": 3.18,
+  "diverged_rel_released_only": 6,
+  "diverged_abs_released_only": 118,
+  "diverged_by_year": {
+   "2011": 37,
+   "2015": 3,
+   "2016": 2,
+   "2018": 3,
+   "2019": 1,
+   "2020": 43,
+   "2021": 1,
+   "2022": 3,
+   "2024": 2,
+   "2025": 12,
+   "2026": 17
+  },
+  "vk_med_min": 12.05,
+  "vk_med_p25": 14.21,
+  "vk_med_median": 16.72,
+  "vk_med_p75": 19.35,
+  "vk_med_max": 49.87
+ },
  "KR": {
   "L1ONLY": {
    "events_with_rain_before": 0,
@@ -82,9 +109,9 @@
    },
    "longest_run": {
     "2": 135,
-    "3": 134
+    "3": 135
    },
-   "transitions": 185
+   "transitions": 184
   },
   "FULL": {
    "events_with_rain_before": 15,
@@ -100,9 +127,9 @@
    },
    "longest_run": {
     "2": 306,
-    "3": 134
+    "3": 135
    },
-   "transitions": 209
+   "transitions": 208
   },
   "FULL_X": {
    "events_with_rain_before": 15,
@@ -118,9 +145,9 @@
    },
    "longest_run": {
     "2": 306,
-    "3": 134
+    "3": 135
    },
-   "transitions": 209
+   "transitions": 208
   },
   "V2_L2P": {
    "events_with_rain_before": 12,
@@ -136,9 +163,9 @@
    },
    "longest_run": {
     "2": 306,
-    "3": 99
+    "3": 100
    },
-   "transitions": 181
+   "transitions": 180
   },
   "V2_L2P_RENEW": {
    "events_with_rain_before": 12,
@@ -262,5 +289,59 @@
    "시간": 6,
    "기말": 0
   }
+ },
+ "r3_release_gate": {
+  "gate_evaluations": 74,
+  "verdict_diverged": 8,
+  "rows": [
+   [
+    "2026-08-21",
+    58.03,
+    48.12,
+    "rel_only"
+   ],
+   [
+    "2026-08-24",
+    56.76,
+    48.51,
+    "rel_only"
+   ],
+   [
+    "2026-08-25",
+    56.29,
+    49.57,
+    "rel_only"
+   ],
+   [
+    "2026-08-26",
+    55.59,
+    49.58,
+    "rel_only"
+   ],
+   [
+    "2026-08-27",
+    53.01,
+    49.87,
+    "rel_only"
+   ],
+   [
+    "2026-08-21",
+    58.03,
+    48.12,
+    "rel_only"
+   ],
+   [
+    "2026-08-24",
+    56.76,
+    48.51,
+    "rel_only"
+   ],
+   [
+    "2026-08-21",
+    58.03,
+    48.12,
+    "rel_only"
+   ]
+  ]
  }
 }
