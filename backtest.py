@@ -317,11 +317,58 @@ def run_machine(panel, variant, floor_by_date=None):
     return states, log
 
 # ── v2.0 규칙 조합 (2026-08-28 신설 — 절차서 v2.0 재실증. 사용자 승인) ──
+# ── R-3 진단 (2026-08-28) ──────────────────────────────────────────────
+# 질문: 폭풍 해제의 "절대 35" vs "1년 중앙값+10"이 실제로 다른 판정을 내린
+# 세션이 30년 중 며칠인가. 30년 성적이 동일하게 나온 것이 규칙이 무의미해서인지,
+# 두 규칙이 대부분의 역사에서 같은 숫자였기 때문(표본 부재)인지를 가른다.
+R3_DIAG = {"gate_evals": 0, "gate_diverge": 0, "diverge_rows": []}
+
+def r3_threshold_scan(panel):
+    """상태 기계와 무관하게, 매 세션에서 두 해제 임계의 판정을 대조한다.
+    게이트 평가 시점(폭풍+갱신심사)은 드물기 때문에, 임계 자체가 갈린 구간이
+    역사에 얼마나 존재했는지를 따로 세어야 '표본 부재'를 판별할 수 있다."""
+    vk_hist, rows = [], []
+    for r in panel:
+        vk = r["vk"]
+        if vk is not None:
+            vk_hist.append(vk)
+        if vk is None or len(vk_hist) < 200:
+            continue
+        w = sorted(vk_hist[-252:]); med = w[len(w)//2]
+        rel_thr = med + 10
+        rows.append({"date": r["date"], "vk": round(vk, 2),
+                     "vk_med": round(med, 2), "rel_thr": round(rel_thr, 2),
+                     "abs_ok": int(vk < 35), "rel_ok": int(vk < rel_thr),
+                     "rel_looser": int(rel_thr > 35)})
+    if not rows:
+        return {"sessions": 0}, []
+    n = len(rows)
+    diverge = [x for x in rows if x["abs_ok"] != x["rel_ok"]]
+    by_year = {}
+    for x in diverge:
+        y = x["date"][:4]
+        by_year[y] = by_year.get(y, 0) + 1
+    meds = sorted(x["vk_med"] for x in rows)
+    q = lambda p: meds[min(int(p * (len(meds) - 1)), len(meds) - 1)]
+    return {
+        "sessions_scored": n,
+        "sessions_rel_looser": sum(x["rel_looser"] for x in rows),   # 중앙값>25
+        "sessions_rel_stricter": n - sum(x["rel_looser"] for x in rows),
+        "verdict_diverged": len(diverge),
+        "verdict_diverged_pct": round(len(diverge) / n * 100, 2),
+        "diverged_rel_released_only": sum(1 for x in diverge if x["rel_ok"]),
+        "diverged_abs_released_only": sum(1 for x in diverge if x["abs_ok"]),
+        "diverged_by_year": dict(sorted(by_year.items())),
+        "vk_med_min": meds[0], "vk_med_p25": q(.25), "vk_med_median": q(.50),
+        "vk_med_p75": q(.75), "vk_med_max": meds[-1],
+    }, diverge
+
+
 V2_SPECS = {"V2_L2P":       (False, False),  # L2=포지셔닝 전용(l2e)만 — L2 재편 격리
             "V2_L2P_RENEW": (True,  False),  # + 상태 갱신 의무제 (기계 근사)
             "V2_FULL":      (True,  True)}   # + 폭풍 해제 레짐 상대화 = v2.0 전체 조합
 
-def run_machine_v2(panel, renew, rel_release):
+def run_machine_v2(panel, renew, rel_release, diag=None):
     """v2.0 규칙: L2 = row['l2e'](포지셔닝 전용 — V-KOSPI 기계 근사 l2m 제외).
     갱신 의무제 근사: 비·폭풍은 승급/심사 후 10세션마다 '새 근거' 심사 —
       새 근거 = 심사 창 내 L2/L3가 기준치 초과로 악화 또는 신규 -8% 10일 전이.
@@ -368,11 +415,21 @@ def run_machine_v2(panel, renew, rel_release):
                 if s > 0 and miss >= 10:
                     ok = True
                     if s == 3:
-                        if rel_release:
-                            ok = (vk is None or vk_med is None or vk < vk_med + 10) \
-                                 and not collapse
-                        else:
-                            ok = (vk is None or vk < 35) and not collapse
+                        abs_ok = (vk is None or vk < 35) and not collapse
+                        rel_ok = (vk is None or vk_med is None
+                                  or vk < vk_med + 10) and not collapse
+                        # R-3 진단 (2026-08-28): 해제 게이트가 실제로 평가되는
+                        # 시점에서만 두 규칙의 판정을 대조한다. 이 지점 밖의
+                        # 임계값 차이는 운영상 아무 일도 하지 않는다.
+                        if diag is not None:
+                            diag["gate_evals"] += 1
+                            if abs_ok != rel_ok:
+                                diag["gate_diverge"] += 1
+                                diag["diverge_rows"].append(
+                                    [row["date"], round(vk, 2) if vk else "",
+                                     round(vk_med, 2) if vk_med else "",
+                                     "rel_only" if rel_ok else "abs_only"])
+                        ok = rel_ok if rel_release else abs_ok
                     if ok:
                         s -= 1; miss = 0
                         if s >= 2: review_i = i; l2_ref, l3_ref = l2, l3
@@ -546,7 +603,7 @@ def analyze(tag, panel, variants, summary, floor=None):
     for variant in variants:
         if variant in V2_SPECS:
             renew, rel = V2_SPECS[variant]
-            states, log = run_machine_v2(panel, renew, rel)
+            states, log = run_machine_v2(panel, renew, rel, diag=R3_DIAG)
         else:
             fl = floor if variant.endswith("_X") else None
             base = variant.replace("_X", "")
@@ -644,6 +701,11 @@ def main():
     else:
         floor = None
 
+    r3_stat, r3_rows = r3_threshold_scan(kr_panel)
+    summary["r3_threshold_scan"] = r3_stat
+    wcsv(f"{OUT}/r3_threshold_diverge.csv", r3_rows,
+         ["date", "vk", "vk_med", "rel_thr", "abs_ok", "rel_ok", "rel_looser"])
+
     kr_variants = ["L1ONLY", "MECH", "FULL"] + (["FULL_X"] if floor else []) \
                   + ["V2_L2P", "V2_L2P_RENEW", "V2_FULL"]   # v2.0 재실증 (2026-08-28)
     kr_events, kr_states = analyze("KR", kr_panel, kr_variants, summary, floor)
@@ -682,6 +744,11 @@ def main():
                                 "close": r["c"], "vix": r["vix"], "vk": r["vk"] or ""})
         wcsv(f"{OUT}/state_monthly_{tag}.csv", monthly,
              ["month", "state", "close", "vix", "vk"])
+
+    summary["r3_release_gate"] = {
+        "gate_evaluations": R3_DIAG["gate_evals"],
+        "verdict_diverged": R3_DIAG["gate_diverge"],
+        "rows": R3_DIAG["diverge_rows"][:50]}
 
     with open(f"{OUT}/summary.json", "w") as f:
         json.dump(summary, f, ensure_ascii=False, indent=1)
