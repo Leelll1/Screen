@@ -2,12 +2,10 @@ name: krx-daily
 
 on:
   schedule:
-    # ── 수집 시각 재설계 (2026-08-29 실측 근거) ────────────────────────────
-    # KRX Open API는 거래일 D의 일별 데이터를 D+1 영업일 오후에 공개한다.
-    #   실측: D+1 22:00 KST 조회 → 정상 / D+1 07:21·00:50·00:15 KST 조회 → 0행
-    #   (20개 서비스 전부 응답 OK, rows=0 — 인증·네트워크 문제가 아니다)
-    # append_ews()가 basDd를 키로 같은 행을 덮어쓰므로 슬롯을 여러 개 두어도
-    # 부작용이 없다. 이른 슬롯이 빈 행을 써도 늦은 슬롯이 채운다.
+    # ── 수집 시각 (2026-08-29 실측 근거) ──────────────────────────────────
+    # 거래일 D의 데이터는 D+1 영업일 오후에 공개된다.
+    #   실측: D+1 22:00 KST 정상 / D+1 07:21·00:50·00:15 KST 0행
+    # append 계열이 basDd·basDt를 키로 덮어쓰므로 슬롯을 여러 개 두어도 무해하다.
     - cron: "20 22 * * 1-5"   # 07:20 KST — 조기 시도 (성공 시 당일 아침 회차가 씀)
     - cron: "0 5 * * 1-5"     # 14:00 KST — 주 시도 (공개 직후로 추정되는 시각)
     - cron: "0 13 * * 1-5"    # 22:00 KST — 보증 백필 (유일하게 실증된 시각)
@@ -24,22 +22,34 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+
       - name: Fetch KRX data
         env:
           KRX_AUTH_KEY: ${{ secrets.KRX_AUTH_KEY }}
         run: python krx_fetch.py
+
+      # 2026-08-29 신설 — 공공데이터포털(금융위) 계열 수집.
+      # 존재 이유: 증시자금추이(위탁매매미수금·반대매매금액·반대매매비중)는
+      # 세션의 WebFetch에서 경로 단위로 403이 나 여기서만 받을 수 있다.
+      # continue-on-error: 이 수집이 실패해도 KRX 수집 결과는 반드시 커밋되게 한다.
+      - name: Fetch FSS (public data portal) data
+        continue-on-error: true
+        env:
+          DATA_GO_KR_KEY: ${{ secrets.DATA_GO_KR_KEY }}
+        run: python fss_fetch.py
+
       # 2026-08-28 교정: 단발 push가 동시 실행과 충돌하면 수집을 다 해놓고
       # 결과를 잃는다(backtest #5 실패 실측). 재시도·리베이스 추가.
       - name: Commit results
         run: |
           git config user.name "krx-bot"
           git config user.email "actions@github.com"
-          git add results/krx/
+          git add results/krx/ results/fss/
           if git diff --cached --quiet; then
             echo "변경 없음 — 커밋 생략"
             exit 0
           fi
-          git commit -m "krx $(date -u +%F)"
+          git commit -m "krx+fss $(date -u +%F)"
           for i in 1 2 3 4 5; do
             if git push; then
               echo "push 성공 (시도 $i)"
