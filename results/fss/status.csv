@@ -1,6 +1,9 @@
 op,code,rows,note,run_at_kst
-getGrantingOfCreditBalanceInfo,00,420,total=1172 최신=20260826 정렬=최신순 페이지=5 경계버림=20241205,2026-08-30 00:22
-getSecuritiesMarketTotalCapitalInfo,00,420,total=1185 최신=20260826 정렬=최신순 페이지=5 경계버림=20241205,2026-08-30 00:22
-getCMAStatus,00,30,total=14220 최신=20260826 정렬=최신순 페이지=4 경계버림=20260714,2026-08-30 00:22
-getETFPriceInfo,00,0,basDt=20260828 0행 — 미공개(D+1 규칙),2026-08-30 00:22
-getETFPriceInfo,00,1163,basDt=20260827 레버리지 3716836164967,2026-08-30 00:22
+getGrantingOfCreditBalanceInfo,EXC URLError: <urlopen error timed out>,0,page1 실패,2026-08-30 00:45
+getSecuritiesMarketTotalCapitalInfo,EXC URLError: <urlopen error timed out>,0,page1 실패,2026-08-30 00:45
+getCMAStatus,EXC URLError: <urlopen error timed out>,0,page1 실패,2026-08-30 00:45
+getETFPriceInfo,EXC URLError: <urlopen error timed out>,0,basDt=20260828 page=1,2026-08-30 00:45
+getETFPriceInfo,EXC URLError: <urlopen error timed out>,0,basDt=20260827 page=1,2026-08-30 00:45
+getETFPriceInfo,EXC URLError: <urlopen error timed out>,0,basDt=20260826 page=1,2026-08-30 00:45
+getETFPriceInfo,EXC URLError: <urlopen error timed out>,0,basDt=20260825 page=1,2026-08-30 00:45
+getETFPriceInfo,EXC URLError: <urlopen error timed out>,0,basDt=20260824 page=1,2026-08-30 00:45
