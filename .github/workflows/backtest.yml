@@ -43,4 +43,3 @@ jobs:
           done
           echo "5회 재시도 후에도 push 실패 — 결과는 이번 실행 로그에만 남음"
           exit 1
-
