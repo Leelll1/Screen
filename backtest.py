@@ -318,9 +318,10 @@ def run_machine(panel, variant, floor_by_date=None):
 
 # ── v2.0 규칙 조합 (2026-08-28 신설 — 절차서 v2.0 재실증. 사용자 승인) ──
 # ── R-3 진단 (2026-08-28) ──────────────────────────────────────────────
-# 질문: 폭풍 해제의 "절대 35" vs "1년 중앙값+10"이 실제로 다른 판정을 내린
-# 세션이 30년 중 며칠인가. 30년 성적이 동일하게 나온 것이 규칙이 무의미해서인지,
-# 두 규칙이 대부분의 역사에서 같은 숫자였기 때문(표본 부재)인지를 가른다.
+# 2026-08-28 1차 측정 결론: 운영상 판정이 갈린 것은 고유 5세션(전부 2026-08)
+# — 표본 부재 확정, 상대 해제 유지. 부수로 저변동기 엄격화 부작용 118세션 발견
+# → R-3b로 하한 35 도입. 이 진단은 존치한다: 이후 회차에서 현행 규칙
+# max(35, 중앙값+10)과 순수 절대 35의 차이를 계속 추적하기 위한 상설 계기다.
 R3_DIAG = {"gate_evals": 0, "gate_diverge": 0, "diverge_rows": []}
 
 def r3_threshold_scan(panel):
@@ -335,7 +336,7 @@ def r3_threshold_scan(panel):
         if vk is None or len(vk_hist) < 200:
             continue
         w = sorted(vk_hist[-252:]); med = w[len(w)//2]
-        rel_thr = med + 10
+        rel_thr = max(35, med + 10)   # R-3b: 절대 35 하한
         rows.append({"date": r["date"], "vk": round(vk, 2),
                      "vk_med": round(med, 2), "rel_thr": round(rel_thr, 2),
                      "abs_ok": int(vk < 35), "rel_ok": int(vk < rel_thr),
@@ -373,7 +374,11 @@ def run_machine_v2(panel, renew, rel_release, diag=None):
     갱신 의무제 근사: 비·폭풍은 승급/심사 후 10세션마다 '새 근거' 심사 —
       새 근거 = 심사 창 내 L2/L3가 기준치 초과로 악화 또는 신규 -8% 10일 전이.
       없으면 한 단계 해제(폭풍은 collapse 중이 아닐 때만). 있으면 기준치 갱신 유지.
-    폭풍 해제 상대화: V-KOSPI < 35 절대 → V-KOSPI < (1년 중앙값 + 10)."""
+    폭풍 해제 레짐 적응 (R-3b, 2026-08-28 사용자 승인):
+      V-KOSPI < max(35, 1년 중앙값 + 10).
+      절대 35를 하한으로 두어 저변동기 엄격화 부작용을 제거하고(30년 118세션
+      관측), 고변동 레짐에서만 완화가 작동하게 한다. 게이트 판정은 30년간
+      불변 — 갈린 8건이 전부 (중앙값+10 > 35) 구간이었다."""
     s = 0; miss = 0; states = []; log = []
     vk_hist = []
     review_i = None; l2_ref = 0; l3_ref = 0
@@ -417,7 +422,7 @@ def run_machine_v2(panel, renew, rel_release, diag=None):
                     if s == 3:
                         abs_ok = (vk is None or vk < 35) and not collapse
                         rel_ok = (vk is None or vk_med is None
-                                  or vk < vk_med + 10) and not collapse
+                                  or vk < max(35, vk_med + 10)) and not collapse
                         # R-3 진단 (2026-08-28): 해제 게이트가 실제로 평가되는
                         # 시점에서만 두 규칙의 판정을 대조한다. 이 지점 밖의
                         # 임계값 차이는 운영상 아무 일도 하지 않는다.
