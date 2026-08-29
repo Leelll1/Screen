@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-fss_fetch.py — 공공데이터포털(금융위원회 계열) 조기경보 지표 수집기  v1.1 (2026-08-30)
+fss_fetch.py — 공공데이터포털(금융위원회 계열) 조기경보 지표 수집기  v1.2 (2026-08-30)
 
 왜 이 스크립트가 따로 있나
 --------------------------
@@ -25,6 +25,10 @@ results/fss/status.csv     오퍼레이션별 수집 상태 자가진단
      '가장 오래된 페이지'가 딸려 들어와 유령 행을 만들었다(첫 수집에서 실측).
 5) 하루에 여러 행이 오는 계열(CMA: 운용대상×투자자 구분)은 날짜별로 합산해야 한다.
    v1.0은 basDt로 dedup한 뒤 합산해 **한 구분의 잔액을 전체로 적었다**(실측 교정).
+   **v1.2**: 그런데 응답에 `mngInvTgt="합계"` 행이 함께 온다. 전부 더하면 정확히
+   2배가 된다(실측: 210.4조 vs 실제 105.2조). 집계 행과 명세 행을 구분해야 한다.
+   — 「하루에 여러 행이 온다」를 알아챈 것만으로는 부족하고, **그 여러 행이 서로
+     배타적인지**까지 확인해야 한다는 사례로 남긴다.
 6) 백분위 판정에는 이력이 필요하다. CSV가 얕으면 첫 회차에 과거를 함께 끌어온다.
 3) 필수 파라미터가 오퍼레이션마다 다르다. 여분은 code 10, 누락은 code 11.
 4) 실패는 status.csv에 남기고 계속 진행한다. 한 지표 실패가 회차를 죽이지 않는다.
@@ -42,7 +46,7 @@ B_SECPRD = "https://apis.data.go.kr/1160100/service/GetSecuritiesProductInfoServ
 B_KRXLST = "https://apis.data.go.kr/1160100/service/GetKrxListedInfoService"
 
 STATUS = []          # [op, http/code, rows, note]
-UA = {"User-Agent": "ews-fss-collector/1.1"}
+UA = {"User-Agent": "ews-fss-collector/1.2"}
 
 
 def log(op, code, rows, note=""):
@@ -203,21 +207,39 @@ def collect_market_cash(want=30):
 
 
 # ─────────────────────────────────────────────────────────── 3) 일자별 CMA 현황
+AGG_LABELS = {"합계", "총계", "소계", "전체", "계"}
+
+
 def collect_cma(want=30):
     """CMA는 하루에 여러 행(운용대상 × 투자자 구분)이 온다 — 날짜별로 합산해야 한다.
 
-    v1.0은 basDt로 dedup한 뒤 합산해서 실제로는 **한 구분의 잔액**(MMF형 개인)을
-    'cma_balance_total'로 적었다. 컬럼 이름이 총계라고 말하는데 값은 총계가 아닌
-    상태였다 — 쓰기 전에 잡았다.
+    v1.0: basDt로 dedup한 뒤 합산해 실제로는 **한 구분의 잔액**(MMF형 개인)을
+          'cma_balance_total'로 적었다. 컬럼 이름은 총계인데 값은 총계가 아니었다.
+    v1.2: dedup을 걷어내고 전부 더했더니 이번엔 **정확히 2배**가 됐다.
+          응답에 `mngInvTgt="합계"` 행이 명세 행과 **함께** 오기 때문이다.
+          실측 20260826 — 명세 10행 합 = 합계 2행 합 = 105조 2,177억,
+          둘을 다 더하면 210조 4,355억.
+          → 합계 행이 있으면 그것만 쓰고(원자료가 직접 준 값이므로 더 정확하다),
+            없으면 명세 행만 더한다.
     """
     rows, boundary = fetch_series(B_KOFIA, "getCMAStatus", want, page_size=100, max_pages=6)
-    out = {}
+    by_date = {}
     for r in rows:
         d = str(r["basDt"])
         if d == boundary:          # 페이지 경계에서 잘렸을 수 있는 날짜 — 합계가 과소가 된다
             continue
-        cur = out.setdefault(d, {"cma_balance_total": 0.0})
-        cur["cma_balance_total"] += (num(r.get("actBal")) or 0.0)
+        by_date.setdefault(d, []).append(r)
+
+    out, used_agg = {}, 0
+    for d, rs in by_date.items():
+        agg   = [r for r in rs if str(r.get("mngInvTgt", "")).strip() in AGG_LABELS]
+        parts = [r for r in rs if str(r.get("mngInvTgt", "")).strip() not in AGG_LABELS]
+        use = agg if agg else parts
+        if agg:
+            used_agg += 1
+        out[d] = {"cma_balance_total": sum((num(r.get("actBal")) or 0.0) for r in use)}
+    if by_date:
+        log("getCMAStatus:합계행", "-", used_agg, f"날짜 {len(by_date)}개 중 합계행 사용 {used_agg}개")
     return out
 
 
