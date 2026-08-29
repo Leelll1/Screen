@@ -1,0 +1,8 @@
+op,code,rows,note,run_at_kst
+getGrantingOfCreditBalanceInfo,00,47,total=1172 최신=20260826,2026-08-30 00:09
+getSecuritiesMarketTotalCapitalInfo,00,35,total=1185 최신=20260826,2026-08-30 00:09
+getCMAStatus,00,10,total=14220 최신=20260826,2026-08-30 00:09
+getETFPriceInfo,00,0,basDt=20260828 0행 — 미공개(D+1 규칙),2026-08-30 00:09
+getETFPriceInfo,00,1163,basDt=20260827 레버리지 3716836164967,2026-08-30 00:09
+getItemInfo,00,0,basDt=20260828 0행,2026-08-30 00:09
+getItemInfo,00,2760,basDt=20260827,2026-08-30 00:09
