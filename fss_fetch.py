@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-fss_fetch.py — 공공데이터포털(금융위원회 계열) 조기경보 지표 수집기  v1.2 (2026-08-30)
+fss_fetch.py — 공공데이터포털(금융위원회 계열) 조기경보 지표 수집기  v1.3 (2026-08-30)
 
 왜 이 스크립트가 따로 있나
 --------------------------
@@ -32,6 +32,15 @@ results/fss/status.csv     오퍼레이션별 수집 상태 자가진단
 6) 백분위 판정에는 이력이 필요하다. CSV가 얕으면 첫 회차에 과거를 함께 끌어온다.
 3) 필수 파라미터가 오퍼레이션마다 다르다. 여분은 code 10, 누락은 code 11.
 4) 실패는 status.csv에 남기고 계속 진행한다. 한 지표 실패가 회차를 죽이지 않는다.
+7) **v1.3 — 포털 도달 불가는 '지표 실패'가 아니라 '경로 실패'다.**
+   2026-08-30 실측: GitHub 러너에서 apis.data.go.kr 전 호출이 타임아웃 났다.
+   같은 시각 같은 키로 다른 경로(세션)에서는 정상 응답이었으므로 포털도 키도
+   정상이었고, 막힌 것은 러너의 경로다. 그런데 v1.2는 8개 오퍼레이션을 각각
+   3회 × 40초씩 기다리며 **17분을 태우고** 똑같은 오류 8줄만 남겼다.
+   → 연속 타임아웃이 4회에 이르면 경로 자체가 죽은 것으로 보고 **남은 호출을
+     건너뛴다.** 실패가 3분 안에 드러나고, 막힌 서버를 계속 두드리지 않는다.
+   → 호출 사이에 짧은 간격(PACE)을 둔다. 직전 대량 호출 직후에 차단이 시작된
+     정황이 있어, 재발 유발을 줄이기 위한 예방이다 — 원인 확정은 아니다.
 """
 
 import os, sys, csv, json, time, urllib.request, urllib.error
@@ -46,7 +55,12 @@ B_SECPRD = "https://apis.data.go.kr/1160100/service/GetSecuritiesProductInfoServ
 B_KRXLST = "https://apis.data.go.kr/1160100/service/GetKrxListedInfoService"
 
 STATUS = []          # [op, http/code, rows, note]
-UA = {"User-Agent": "ews-fss-collector/1.2"}
+UA = {"User-Agent": "ews-fss-collector/1.3"}
+
+PACE = 0.7           # 호출 간 최소 간격(초) — 버스트 억제
+TIMEOUT_STREAK = 4   # 연속 타임아웃 이 횟수면 경로 사망으로 보고 조기 중단
+_streak = 0          # 연속 타임아웃 카운터
+NET_DOWN = False     # 조기 중단 플래그
 
 
 def log(op, code, rows, note=""):
@@ -55,14 +69,23 @@ def log(op, code, rows, note=""):
 
 
 def call(base, op, qs, tries=3):
-    """키를 문자열로 이어 붙여 호출하고 JSON dict를 돌려준다. 실패 시 None."""
+    """키를 문자열로 이어 붙여 호출하고 JSON dict를 돌려준다. 실패 시 None.
+
+    v1.3: 경로가 죽었다고 판정되면(NET_DOWN) 즉시 반환한다. 40초 × 3회를
+    오퍼레이션마다 반복하는 것은 정보를 더 주지 않고 시간만 태운다.
+    """
+    global _streak, NET_DOWN
+    if NET_DOWN:
+        return None, "SKIP 포털 도달 불가(조기 중단)"
     url = f"{base}/{op}?serviceKey={KEY}&resultType=json&{qs}"
     last = ""
     for i in range(tries):
+        time.sleep(PACE)
         try:
             req = urllib.request.Request(url, headers=UA)
             with urllib.request.urlopen(req, timeout=40) as r:
                 body = r.read().decode("utf-8", "replace")
+            _streak = 0                      # 본문이 왔다 — 경로는 살아 있다
             if body.lstrip().startswith("<"):
                 # XML 오류 응답 — 코드만 뽑아 기록
                 import re
@@ -71,6 +94,7 @@ def call(base, op, qs, tries=3):
                 last = f"XML {m.group(1) if m else '?'} {n.group(1) if n else ''}"
                 return None, last
             d = json.loads(body)
+            _streak = 0                      # 응답이 왔다 — 경로는 살아 있다
             hdr = d.get("response", {}).get("header", {})
             rc = str(hdr.get("resultCode", "?"))
             if rc not in ("00", "0"):
@@ -78,6 +102,16 @@ def call(base, op, qs, tries=3):
             return d.get("response", {}).get("body", {}), "ok"
         except Exception as e:
             last = f"EXC {type(e).__name__}: {e}"
+            if "timed out" in str(e).lower() or isinstance(e, (TimeoutError,)):
+                _streak += 1
+                if _streak >= TIMEOUT_STREAK:
+                    NET_DOWN = True
+                    log("NETWORK", "DOWN", 0,
+                        f"연속 타임아웃 {_streak}회 — 포털 도달 불가로 판정, 남은 호출 생략. "
+                        f"같은 키가 다른 경로에서 동작하는지 확인할 것")
+                    return None, last
+            else:
+                _streak = 0
             time.sleep(2 + 3 * i)
     return None, last
 
