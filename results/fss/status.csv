@@ -1,6 +1,7 @@
 op,code,rows,note,run_at_kst
-getGrantingOfCreditBalanceInfo,00,30,total=1175 최신=20260831 정렬=최신순 페이지=1 경계버림=20260720,2026-09-02 22:12
-getSecuritiesMarketTotalCapitalInfo,00,30,total=1188 최신=20260831 정렬=최신순 페이지=1 경계버림=20260720,2026-09-02 22:12
-getCMAStatus,00,30,total=14256 최신=20260831 정렬=최신순 페이지=4 경계버림=20260720,2026-09-02 22:12
-getCMAStatus:합계행,-,29,날짜 29개 중 합계행 사용 29개,2026-09-02 22:12
-getETFPriceInfo,00,1167,basDt=20260901 레버리지 2892300582054,2026-09-02 22:12
+getGrantingOfCreditBalanceInfo,00,30,total=1176 최신=20260901 정렬=최신순 페이지=1 경계버림=20260721,2026-09-03 07:27
+getSecuritiesMarketTotalCapitalInfo,00,30,total=1189 최신=20260901 정렬=최신순 페이지=1 경계버림=20260721,2026-09-03 07:27
+getCMAStatus,00,30,total=14268 최신=20260901 정렬=최신순 페이지=4 경계버림=20260721,2026-09-03 07:27
+getCMAStatus:합계행,-,29,날짜 29개 중 합계행 사용 29개,2026-09-03 07:27
+getETFPriceInfo,00,0,basDt=20260902 0행 — 미공개(D+1 규칙),2026-09-03 07:27
+getETFPriceInfo,00,1167,basDt=20260901 레버리지 2892300582054,2026-09-03 07:27
