@@ -1,6 +1,10 @@
 op,code,rows,note,run_at_kst
-getGrantingOfCreditBalanceInfo,00,30,total=1176 최신=20260901 정렬=최신순 페이지=1 경계버림=20260721,2026-09-03 14:39
-getSecuritiesMarketTotalCapitalInfo,00,30,total=1189 최신=20260901 정렬=최신순 페이지=1 경계버림=20260721,2026-09-03 14:39
-getCMAStatus,00,30,total=14268 최신=20260901 정렬=최신순 페이지=4 경계버림=20260721,2026-09-03 14:39
-getCMAStatus:합계행,-,29,날짜 29개 중 합계행 사용 29개,2026-09-03 14:39
-getETFPriceInfo,00,1167,basDt=20260902 레버리지 3047807013469,2026-09-03 14:39
+getGrantingOfCreditBalanceInfo,EXC URLError: <urlopen error timed out>,0,page1 실패,2026-09-03 22:15
+NETWORK,DOWN,0,"연속 타임아웃 4회 — 포털 도달 불가로 판정, 남은 호출 생략. 같은 키가 다른 경로에서 동작하는지 확인할 것",2026-09-03 22:15
+getSecuritiesMarketTotalCapitalInfo,EXC URLError: <urlopen error timed out>,0,page1 실패,2026-09-03 22:15
+getCMAStatus,SKIP 포털 도달 불가(조기 중단),0,page1 실패,2026-09-03 22:15
+getETFPriceInfo,SKIP 포털 도달 불가(조기 중단),0,basDt=20260902 page=1,2026-09-03 22:15
+getETFPriceInfo,SKIP 포털 도달 불가(조기 중단),0,basDt=20260901 page=1,2026-09-03 22:15
+getETFPriceInfo,SKIP 포털 도달 불가(조기 중단),0,basDt=20260831 page=1,2026-09-03 22:15
+getETFPriceInfo,SKIP 포털 도달 불가(조기 중단),0,basDt=20260828 page=1,2026-09-03 22:15
+getETFPriceInfo,SKIP 포털 도달 불가(조기 중단),0,basDt=20260827 page=1,2026-09-03 22:15
