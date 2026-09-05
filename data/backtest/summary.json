@@ -1,15 +1,15 @@
 {
- "kospi_source": "yahoo 7313+krx 4099",
+ "kospi_source": "yahoo 7319+krx 4105",
  "us_leg": true,
  "kr_span": [
   "1996-12-11",
-  "2026-08-27",
-  7318
+  "2026-09-04",
+  7324
  ],
  "us_span": [
   "1996-06-03",
-  "2026-08-28",
-  7609
+  "2026-09-04",
+  7614
  ],
  "US": {
   "L1ONLY": {
@@ -37,7 +37,7 @@
    "episodes_hit": 8,
    "false_alarm_rate": 0.38,
    "state_days_pct": {
-    "0": 57.6,
+    "0": 57.7,
     "1": 33.8,
     "2": 5.5,
     "3": 3.0
@@ -50,31 +50,21 @@
   }
  },
  "r3_threshold_scan": {
-  "sessions_scored": 3900,
-  "sessions_rel_looser": 150,
+  "sessions_scored": 3906,
+  "sessions_rel_looser": 156,
   "sessions_rel_stricter": 3750,
-  "verdict_diverged": 124,
-  "verdict_diverged_pct": 3.18,
-  "diverged_rel_released_only": 6,
-  "diverged_abs_released_only": 118,
+  "verdict_diverged": 12,
+  "verdict_diverged_pct": 0.31,
+  "diverged_rel_released_only": 12,
+  "diverged_abs_released_only": 0,
   "diverged_by_year": {
-   "2011": 37,
-   "2015": 3,
-   "2016": 2,
-   "2018": 3,
-   "2019": 1,
-   "2020": 43,
-   "2021": 1,
-   "2022": 3,
-   "2024": 2,
-   "2025": 12,
-   "2026": 17
+   "2026": 12
   },
   "vk_med_min": 12.05,
-  "vk_med_p25": 14.21,
-  "vk_med_median": 16.72,
-  "vk_med_p75": 19.35,
-  "vk_med_max": 49.87
+  "vk_med_p25": 14.22,
+  "vk_med_median": 16.74,
+  "vk_med_p75": 19.38,
+  "vk_med_max": 50.08
  },
  "KR": {
   "L1ONLY": {
@@ -84,8 +74,8 @@
    "episodes_hit": 0,
    "false_alarm_rate": null,
    "state_days_pct": {
-    "0": 64.0,
-    "1": 36.0,
+    "0": 64.2,
+    "1": 35.8,
     "2": 0.0,
     "3": 0.0
    },
@@ -102,14 +92,14 @@
    "episodes_hit": 3,
    "false_alarm_rate": 0.86,
    "state_days_pct": {
-    "0": 61.8,
-    "1": 30.2,
+    "0": 61.9,
+    "1": 30.1,
     "2": 3.7,
-    "3": 4.2
+    "3": 4.3
    },
    "longest_run": {
-    "2": 135,
-    "3": 135
+    "2": 141,
+    "3": 141
    },
    "transitions": 184
   },
@@ -120,14 +110,14 @@
    "episodes_hit": 14,
    "false_alarm_rate": 0.55,
    "state_days_pct": {
-    "0": 53.4,
-    "1": 28.4,
+    "0": 53.5,
+    "1": 28.2,
     "2": 10.7,
-    "3": 7.5
+    "3": 7.6
    },
    "longest_run": {
     "2": 306,
-    "3": 135
+    "3": 141
    },
    "transitions": 208
   },
@@ -138,14 +128,14 @@
    "episodes_hit": 14,
    "false_alarm_rate": 0.55,
    "state_days_pct": {
-    "0": 53.4,
-    "1": 28.4,
+    "0": 53.5,
+    "1": 28.2,
     "2": 10.7,
-    "3": 7.5
+    "3": 7.6
    },
    "longest_run": {
     "2": 306,
-    "3": 135
+    "3": 141
    },
    "transitions": 208
   },
@@ -156,14 +146,14 @@
    "episodes_hit": 13,
    "false_alarm_rate": 0.28,
    "state_days_pct": {
-    "0": 55.0,
-    "1": 30.4,
+    "0": 55.1,
+    "1": 30.2,
     "2": 9.5,
-    "3": 5.1
+    "3": 5.2
    },
    "longest_run": {
     "2": 306,
-    "3": 100
+    "3": 106
    },
    "transitions": 180
   },
@@ -174,13 +164,13 @@
    "episodes_hit": 31,
    "false_alarm_rate": 0.33,
    "state_days_pct": {
-    "0": 55.1,
-    "1": 31.4,
-    "2": 8.8,
+    "0": 55.2,
+    "1": 31.2,
+    "2": 8.9,
     "3": 4.7
    },
    "longest_run": {
-    "2": 67,
+    "2": 72,
     "3": 40
    },
    "transitions": 287
@@ -192,16 +182,16 @@
    "episodes_hit": 31,
    "false_alarm_rate": 0.33,
    "state_days_pct": {
-    "0": 55.1,
-    "1": 31.4,
-    "2": 8.8,
+    "0": 55.2,
+    "1": 31.3,
+    "2": 8.9,
     "3": 4.6
    },
    "longest_run": {
-    "2": 67,
+    "2": 71,
     "3": 38
    },
-   "transitions": 287
+   "transitions": 288
   }
  },
  "coupling": {
@@ -244,7 +234,7 @@
  },
  "hunt_KR_CHASE": {
   "trades": 26,
-  "per_year": 0.9,
+  "per_year": 0.89,
   "win_rate": 0.46,
   "avg_ret_pct": -0.73,
   "median_ret_pct": -0.55,
@@ -291,8 +281,8 @@
   }
  },
  "r3_release_gate": {
-  "gate_evaluations": 74,
-  "verdict_diverged": 8,
+  "gate_evaluations": 80,
+  "verdict_diverged": 14,
   "rows": [
    [
     "2026-08-21",
@@ -322,6 +312,42 @@
     "2026-08-27",
     53.01,
     49.87,
+    "rel_only"
+   ],
+   [
+    "2026-08-28",
+    50.08,
+    50.08,
+    "rel_only"
+   ],
+   [
+    "2026-08-31",
+    46.05,
+    50.08,
+    "rel_only"
+   ],
+   [
+    "2026-09-01",
+    44.03,
+    50.08,
+    "rel_only"
+   ],
+   [
+    "2026-09-02",
+    43.37,
+    50.08,
+    "rel_only"
+   ],
+   [
+    "2026-09-03",
+    42.42,
+    50.08,
+    "rel_only"
+   ],
+   [
+    "2026-09-04",
+    39.33,
+    50.08,
     "rel_only"
    ],
    [
