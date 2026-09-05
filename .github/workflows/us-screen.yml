@@ -13,8 +13,10 @@ jobs:
   screen:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      # 2026-09-05: v4/v5 는 Node 20 대상이라 Node 24 로 강제 승격 중이었다.
+      # 승격이 끝나면 4개 워크플로가 동시에 깨진다 — 최신 v7 로 올린다.
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - name: Run screen
