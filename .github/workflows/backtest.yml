@@ -11,8 +11,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 90
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      # 2026-09-05: v4/v5 는 Node 20 대상. 최신 v7 로 올린다.
+      # ⚠️ 이 워크플로가 «수동 전용»이라 v7 전환의 시험대다 — 여기부터 올려 보고
+      #    통과하면 나머지 셋(krx-daily · us-screen · threshold-lab)을 올린다.
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - name: Run backtest
