@@ -48,11 +48,20 @@ def clone(panel):
 def summarize(panel, states, events, min_state=2):
     n = len(panel)
     days = sum(1 for s in states if s >= min_state)
-    caught = 0
+    # 2026-09-05 교정 — backtest.scorecard 와 «같은» 결함을 공유하고 있었다.
+    # 탐색 창이 사후 확정 저점 t 까지 열려 있어 폭락 뒤 경보도 caught 로 셌고,
+    # 그래서 격자 비교의 caught 열 «전체»가 같은 편향을 안고 있었다.
+    # 이제 고점 이전만 caught 로 세고, v1 정의는 caught_v1 로 남겨 나란히 본다.
+    # getattr — backtest 가 아직 구판일 때도 죽지 않게 한다(분할 머지 대비).
+    lead = getattr(bt, "LEAD_WINDOW", 120)
+    caught = 0; caught_v1 = 0
     for ev in events:
         p, t = ev["peak_i"], ev["trough_i"]
-        if any(states[j] >= min_state for j in range(max(0, p-120), t+1)):
+        lo = max(0, p - lead)
+        if any(states[j] >= min_state for j in range(lo, p+1)):
             caught += 1
+        if any(states[j] >= min_state for j in range(lo, t+1)):
+            caught_v1 += 1
     # 에피소드·과잉경보 (min_state 기준)
     closes = [r["c"] for r in panel]
     eps = []; i = 0
@@ -66,7 +75,11 @@ def summarize(panel, states, events, min_state=2):
             i = j+1
         else: i += 1
     hits = sum(1 for _, h in eps if h)
-    return {"caught": f"{caught}/{len(events)}", "episodes": len(eps), "hits": hits,
+    return {"caught": f"{caught}/{len(events)}",
+            "caught_v1": f"{caught_v1}/{len(events)}",
+            "lead_window": lead,
+            "panel_sessions": n, "panel_span": f"{panel[0]['date']}..{panel[-1]['date']}",
+            "episodes": len(eps), "hits": hits,
             "fa_rate": round(1-hits/len(eps), 2) if eps else "",
             "days_pct": round(days/n*100, 1),
             "longest_ep": max((l for l, _ in eps), default=0)}
@@ -128,7 +141,12 @@ def main():
                 r["ret10"] = r["ret10"] * (0.08/denom)
         states, _ = bt.run_machine(p2, "FULL")
         s = summarize(p2, states, events, min_state=3)
+        # ⚠️ caught_v1 을 반드시 함께 싣는다. 교정 후 storm_caught 가 전 후보에서
+        #    0 으로 눌리면 이 격자의 «순위 열»이 상수가 되어 비교가 죽는다 —
+        #    실제로 합성 패널에서 6개 후보가 전부 8/13 → 0/13 이 됐다.
         rows.append({"rule": label, "storm_caught": s["caught"],
+                     "storm_caught_v1": s["caught_v1"],
+                     "panel_sessions": s["panel_sessions"],
                      "storm_days_pct": s["days_pct"], "storm_episodes": s["episodes"],
                      "longest_storm": s["longest_ep"]})
     run_storm("고정 -8% (v1.0)", None)
