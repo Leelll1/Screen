@@ -14,6 +14,21 @@
  "US": {
   "L1ONLY": {
    "events_with_rain_before": 0,
+   "events_with_rain_during": 0,
+   "events_with_rain_before_or_during": 0,
+   "events_with_storm_before": 0,
+   "caught_null": {
+    "actual": 0,
+    "draws": 205,
+    "mean": 0.0,
+    "p50": 0,
+    "p95": 0,
+    "max": 0,
+    "p_value_one_sided": 1.0,
+    "degenerate": true
+   },
+   "machine_inputs_only": true,
+   "lead_window_sessions": 120,
    "events_total": 12,
    "rain_episodes": 0,
    "episodes_hit": 0,
@@ -31,7 +46,22 @@
    "transitions": 138
   },
   "FULL": {
-   "events_with_rain_before": 8,
+   "events_with_rain_before": 5,
+   "events_with_rain_during": 3,
+   "events_with_rain_before_or_during": 8,
+   "events_with_storm_before": 1,
+   "caught_null": {
+    "actual": 5,
+    "draws": 205,
+    "mean": 2.96,
+    "p50": 3,
+    "p95": 5,
+    "max": 8,
+    "p_value_one_sided": 0.102,
+    "degenerate": false
+   },
+   "machine_inputs_only": false,
+   "lead_window_sessions": 120,
    "events_total": 12,
    "rain_episodes": 13,
    "episodes_hit": 8,
@@ -69,6 +99,21 @@
  "KR": {
   "L1ONLY": {
    "events_with_rain_before": 0,
+   "events_with_rain_during": 0,
+   "events_with_rain_before_or_during": 0,
+   "events_with_storm_before": 0,
+   "caught_null": {
+    "actual": 0,
+    "draws": 203,
+    "mean": 0.0,
+    "p50": 0,
+    "p95": 0,
+    "max": 0,
+    "p_value_one_sided": 1.0,
+    "degenerate": true
+   },
+   "machine_inputs_only": true,
+   "lead_window_sessions": 120,
    "events_total": 23,
    "rain_episodes": 0,
    "episodes_hit": 0,
@@ -86,7 +131,22 @@
    "transitions": 142
   },
   "MECH": {
-   "events_with_rain_before": 10,
+   "events_with_rain_before": 5,
+   "events_with_rain_during": 5,
+   "events_with_rain_before_or_during": 10,
+   "events_with_storm_before": 3,
+   "caught_null": {
+    "actual": 5,
+    "draws": 203,
+    "mean": 7.95,
+    "p50": 8,
+    "p95": 12,
+    "max": 15,
+    "p_value_one_sided": 0.916,
+    "degenerate": false
+   },
+   "machine_inputs_only": true,
+   "lead_window_sessions": 120,
    "events_total": 23,
    "rain_episodes": 21,
    "episodes_hit": 3,
@@ -104,7 +164,22 @@
    "transitions": 184
   },
   "FULL": {
-   "events_with_rain_before": 15,
+   "events_with_rain_before": 7,
+   "events_with_rain_during": 8,
+   "events_with_rain_before_or_during": 15,
+   "events_with_storm_before": 3,
+   "caught_null": {
+    "actual": 7,
+    "draws": 203,
+    "mean": 12.21,
+    "p50": 12,
+    "p95": 17,
+    "max": 19,
+    "p_value_one_sided": 0.99,
+    "degenerate": false
+   },
+   "machine_inputs_only": false,
+   "lead_window_sessions": 120,
    "events_total": 23,
    "rain_episodes": 31,
    "episodes_hit": 14,
@@ -122,7 +197,22 @@
    "transitions": 208
   },
   "FULL_X": {
-   "events_with_rain_before": 15,
+   "events_with_rain_before": 7,
+   "events_with_rain_during": 8,
+   "events_with_rain_before_or_during": 15,
+   "events_with_storm_before": 3,
+   "caught_null": {
+    "actual": 7,
+    "draws": 203,
+    "mean": 12.21,
+    "p50": 12,
+    "p95": 17,
+    "max": 19,
+    "p_value_one_sided": 0.99,
+    "degenerate": false
+   },
+   "machine_inputs_only": false,
+   "lead_window_sessions": 120,
    "events_total": 23,
    "rain_episodes": 31,
    "episodes_hit": 14,
@@ -140,7 +230,22 @@
    "transitions": 208
   },
   "V2_L2P": {
-   "events_with_rain_before": 12,
+   "events_with_rain_before": 4,
+   "events_with_rain_during": 8,
+   "events_with_rain_before_or_during": 12,
+   "events_with_storm_before": 2,
+   "caught_null": {
+    "actual": 4,
+    "draws": 203,
+    "mean": 8.16,
+    "p50": 8,
+    "p95": 13,
+    "max": 18,
+    "p_value_one_sided": 0.975,
+    "degenerate": false
+   },
+   "machine_inputs_only": false,
+   "lead_window_sessions": 120,
    "events_total": 23,
    "rain_episodes": 18,
    "episodes_hit": 13,
@@ -158,7 +263,22 @@
    "transitions": 180
   },
   "V2_L2P_RENEW": {
-   "events_with_rain_before": 12,
+   "events_with_rain_before": 4,
+   "events_with_rain_during": 8,
+   "events_with_rain_before_or_during": 12,
+   "events_with_storm_before": 2,
+   "caught_null": {
+    "actual": 4,
+    "draws": 203,
+    "mean": 8.05,
+    "p50": 8,
+    "p95": 13,
+    "max": 18,
+    "p_value_one_sided": 0.975,
+    "degenerate": false
+   },
+   "machine_inputs_only": false,
+   "lead_window_sessions": 120,
    "events_total": 23,
    "rain_episodes": 46,
    "episodes_hit": 31,
@@ -176,7 +296,22 @@
    "transitions": 287
   },
   "V2_FULL": {
-   "events_with_rain_before": 12,
+   "events_with_rain_before": 4,
+   "events_with_rain_during": 8,
+   "events_with_rain_before_or_during": 12,
+   "events_with_storm_before": 2,
+   "caught_null": {
+    "actual": 4,
+    "draws": 203,
+    "mean": 8.04,
+    "p50": 8,
+    "p95": 13,
+    "max": 18,
+    "p_value_one_sided": 0.975,
+    "degenerate": false
+   },
+   "machine_inputs_only": false,
+   "lead_window_sessions": 120,
    "events_total": 23,
    "rain_episodes": 46,
    "episodes_hit": 31,
@@ -281,93 +416,159 @@
   }
  },
  "r3_release_gate": {
-  "gate_evaluations": 80,
-  "verdict_diverged": 14,
-  "rows": [
-   [
-    "2026-08-21",
-    58.03,
-    48.12,
-    "rel_only"
-   ],
-   [
-    "2026-08-24",
-    56.76,
-    48.51,
-    "rel_only"
-   ],
-   [
-    "2026-08-25",
-    56.29,
-    49.57,
-    "rel_only"
-   ],
-   [
-    "2026-08-26",
-    55.59,
-    49.58,
-    "rel_only"
-   ],
-   [
-    "2026-08-27",
-    53.01,
-    49.87,
-    "rel_only"
-   ],
-   [
-    "2026-08-28",
-    50.08,
-    50.08,
-    "rel_only"
-   ],
-   [
-    "2026-08-31",
-    46.05,
-    50.08,
-    "rel_only"
-   ],
-   [
-    "2026-09-01",
-    44.03,
-    50.08,
-    "rel_only"
-   ],
-   [
-    "2026-09-02",
-    43.37,
-    50.08,
-    "rel_only"
-   ],
-   [
-    "2026-09-03",
-    42.42,
-    50.08,
-    "rel_only"
-   ],
-   [
-    "2026-09-04",
-    39.33,
-    50.08,
-    "rel_only"
-   ],
-   [
-    "2026-08-21",
-    58.03,
-    48.12,
-    "rel_only"
-   ],
-   [
-    "2026-08-24",
-    56.76,
-    48.51,
-    "rel_only"
-   ],
-   [
-    "2026-08-21",
-    58.03,
-    48.12,
-    "rel_only"
-   ]
+  "by_variant": {
+   "KR:V2_FULL": {
+    "gate_evaluations": 14,
+    "verdict_diverged": 1
+   },
+   "KR:V2_L2P": {
+    "gate_evaluations": 51,
+    "verdict_diverged": 11
+   },
+   "KR:V2_L2P_RENEW": {
+    "gate_evaluations": 15,
+    "verdict_diverged": 2
+   }
+  },
+  "gate_evaluations_total": 80,
+  "verdict_diverged_total": 14,
+  "verdict_diverged_unique_sessions": 11,
+  "rows_unique": [
+   {
+    "date": "2026-08-21",
+    "row": [
+     "2026-08-21",
+     58.03,
+     48.12,
+     "rel_only"
+    ],
+    "variants": [
+     "KR:V2_FULL",
+     "KR:V2_L2P",
+     "KR:V2_L2P_RENEW"
+    ]
+   },
+   {
+    "date": "2026-08-24",
+    "row": [
+     "2026-08-24",
+     56.76,
+     48.51,
+     "rel_only"
+    ],
+    "variants": [
+     "KR:V2_L2P",
+     "KR:V2_L2P_RENEW"
+    ]
+   },
+   {
+    "date": "2026-08-25",
+    "row": [
+     "2026-08-25",
+     56.29,
+     49.57,
+     "rel_only"
+    ],
+    "variants": [
+     "KR:V2_L2P"
+    ]
+   },
+   {
+    "date": "2026-08-26",
+    "row": [
+     "2026-08-26",
+     55.59,
+     49.58,
+     "rel_only"
+    ],
+    "variants": [
+     "KR:V2_L2P"
+    ]
+   },
+   {
+    "date": "2026-08-27",
+    "row": [
+     "2026-08-27",
+     53.01,
+     49.87,
+     "rel_only"
+    ],
+    "variants": [
+     "KR:V2_L2P"
+    ]
+   },
+   {
+    "date": "2026-08-28",
+    "row": [
+     "2026-08-28",
+     50.08,
+     50.08,
+     "rel_only"
+    ],
+    "variants": [
+     "KR:V2_L2P"
+    ]
+   },
+   {
+    "date": "2026-08-31",
+    "row": [
+     "2026-08-31",
+     46.05,
+     50.08,
+     "rel_only"
+    ],
+    "variants": [
+     "KR:V2_L2P"
+    ]
+   },
+   {
+    "date": "2026-09-01",
+    "row": [
+     "2026-09-01",
+     44.03,
+     50.08,
+     "rel_only"
+    ],
+    "variants": [
+     "KR:V2_L2P"
+    ]
+   },
+   {
+    "date": "2026-09-02",
+    "row": [
+     "2026-09-02",
+     43.37,
+     50.08,
+     "rel_only"
+    ],
+    "variants": [
+     "KR:V2_L2P"
+    ]
+   },
+   {
+    "date": "2026-09-03",
+    "row": [
+     "2026-09-03",
+     42.42,
+     50.08,
+     "rel_only"
+    ],
+    "variants": [
+     "KR:V2_L2P"
+    ]
+   },
+   {
+    "date": "2026-09-04",
+    "row": [
+     "2026-09-04",
+     39.33,
+     50.08,
+     "rel_only"
+    ],
+    "variants": [
+     "KR:V2_L2P"
+    ]
+   }
   ]
  }
 }
