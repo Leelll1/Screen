@@ -322,7 +322,16 @@ def run_machine(panel, variant, floor_by_date=None):
 # — 표본 부재 확정, 상대 해제 유지. 부수로 저변동기 엄격화 부작용 118세션 발견
 # → R-3b로 하한 35 도입. 이 진단은 존치한다: 이후 회차에서 현행 규칙
 # max(35, 중앙값+10)과 순수 절대 35의 차이를 계속 추적하기 위한 상설 계기다.
-R3_DIAG = {"gate_evals": 0, "gate_diverge": 0, "diverge_rows": []}
+# 2026-09-05 교정 (G-4) — v1 은 이 dict «하나»를 V2 변형 3개 전부에 넘겨서 같은
+# 세션이 여러 번 누적됐다. 커밋된 산출은 `verdict_diverged: 14` 인데 rows 의 고유
+# 날짜는 11개였다. ⚠️ 중복은 «균일한 3배»가 아니다 — 변형별 실측은
+# V2_L2P 11 · V2_L2P_RENEW 2 · V2_FULL 1 이고 겹치는 행이 3개일 뿐이다.
+# 게이트 평가 시점은 상태 경로에 딸린 것이라 변형마다 실제로 다르다 —
+# 그러므로 합치지 말고 변형별로 따로 재고, 고유 세션 수를 별도로 센다.
+def new_r3_diag():
+    return {"gate_evals": 0, "gate_diverge": 0, "diverge_rows": []}
+
+R3_DIAG_BY = {}   # "{tag}:{variant}" → diag dict
 
 def r3_threshold_scan(panel):
     """상태 기계와 무관하게, 매 세션에서 두 해제 임계의 판정을 대조한다.
@@ -378,7 +387,10 @@ def run_machine_v2(panel, renew, rel_release, diag=None):
       V-KOSPI < max(35, 1년 중앙값 + 10).
       절대 35를 하한으로 두어 저변동기 엄격화 부작용을 제거하고(30년 118세션
       관측), 고변동 레짐에서만 완화가 작동하게 한다. 게이트 판정은 30년간
-      불변 — 갈린 8건이 전부 (중앙값+10 > 35) 구간이었다."""
+      불변 — 갈린 8건이 전부 (중앙값+10 > 35) 구간이었다.
+      ⚠️ 2026-09-05 — 그 「8」은 변형 3개의 «합»이었다(G-4). 고유 세션 기준으로 다시
+        세면 값이 달라진다. 산출물의 `verdict_diverged_unique_sessions` 와
+        `rows_unique` 를 보고 이 문장을 갱신해야 한다 — 지금은 미갱신 상태다."""
     s = 0; miss = 0; states = []; log = []
     vk_hist = []
     review_i = None; l2_ref = 0; l3_ref = 0
@@ -460,24 +472,145 @@ def detect_events(panel):
                 cur["end_i"] = i; events.append(cur); cur = None
     return events
 
+# 「사전 경보」 탐색 창 (세션). 고점에서 이만큼 거슬러 올라간다.
+# ⚠️ detect_events 는 고점을 «252세션» 되돌아보며 잡는데 이 창은 120이다 — 둘이 다르다.
+#    121~252세션 전에 울린 경보는 «놓침»으로 채점된다. 의도된 보수적 설정이며,
+#    바꿔 보려면 BT_LEAD_WINDOW 로 덮어쓸 수 있다(산출에 값이 함께 기록된다).
+LEAD_WINDOW = int(os.environ.get("BT_LEAD_WINDOW", "120"))
+
+
+def caught_count(states, events, lead=None, level=2):
+    """사건 중 «고점 이전»에 경보가 울린 건수. 귀무분포 계산과 공용."""
+    lead = LEAD_WINDOW if lead is None else lead
+    c = 0
+    for ev in events:
+        p = ev["peak_i"]
+        if any(states[j] >= level for j in range(max(0, p - lead), p + 1)):
+            c += 1
+    return c
+
+
+# 기계 입력만 쓰는 변형. 나머지(FULL·FULL_X·V2_*)는 l2e/l3e 를 «손으로 매긴»
+# EVIDENCE 표에서 받는다 — 미결 I-13 이 그 표의 근거가 고점 6~11세션 전부터
+# 깔린다고 실측해 두었다. 즉 사전 창 [p-120, p] 이 바로 그 라벨이 놓인 구간이다.
+MACHINE_ONLY_VARIANTS = {"L1ONLY", "MECH"}
+
+NULL_SHIFTS = int(os.environ.get("BT_NULL_SHIFTS", "200"))
+
+
+def null_baseline(states, events, shifts=None, level=2):
+    """상태 계열을 «원형 회전»시켜 시간 정렬만 깬 귀무분포.
+
+    가동률과 연속 길이는 그대로 두고 사건과의 정렬만 파괴한다. 성적이 이 분포
+    안에 들어가면 그 성적은 «우연과 구분되지 않는다». 2026-09-05 신설 — 종전
+    산출에는 기준선이 없어 「15/23」이 좋은 값인지 나쁜 값인지 알 수 없었다.
+
+    ⚠️ **낮은 p 는 «정렬»의 증거이지 «예측력»의 증거가 아니다.**
+      이 검정은 「경보가 사건과 시간적으로 맞물려 있는가」만 묻는다. 사후에 매긴
+      라벨로 만든 경보도 사건과 완벽히 맞물리므로 **똑같이 낮은 p 를 받는다**
+      (실측: 사후 확정 고점 9세션 전에 켜지도록 «만든» 계열이 13/13 · p=0.01).
+      따라서 `machine_inputs_only` 가 false 인 변형의 낮은 p 는 **예측력의 근거로
+      쓸 수 없다.** 그 변형들은 EVIDENCE 표에서 l2e/l3e 를 받고, 그 표의 근거가
+      바로 이 창 안에 깔려 있기 때문이다(미결 I-13).
+    ⚠️ 입력이 «구조적으로 죽어 있는» 구간이 있으면 이 p 는 다른 질문에 답한다.
+      예: MECH 의 V-KOSPI 는 2010 이전이 없어 패널의 약 45%에서 발화 자체가
+      불가능한데, 회전은 그 구간을 사건들에 섞는다. 이 경우 값은 «보수적»(실제보다
+      나쁘게) 나오지만 그 사실이 표시되지는 않는다.
+    ⚠️ 회전 폭은 [LEAD_WINDOW, n-LEAD_WINDOW] 로 제한한다 — 그보다 작은 회전은
+      창이 겹쳐 원래 계열과 상관되므로 귀무가 되지 못한다.
+    """
+    n = len(states)
+    if n < 10 or not events:
+        return None
+    shifts = NULL_SHIFTS if shifts is None else shifts
+    lo, hi = LEAD_WINDOW, n - LEAD_WINDOW
+    if hi <= lo:
+        return None
+    step = max(1, (hi - lo) // shifts)
+    vals = [caught_count(states[-k:] + states[:-k], events, level=level)
+            for k in range(lo, hi, step)]
+    if not vals:
+        return None
+    actual = caught_count(states, events, level=level)
+    s = sorted(vals)
+    return {"actual": actual,
+            "draws": len(s),
+            "mean": round(sum(s)/len(s), 2),
+            "p50": s[len(s)//2],
+            "p95": s[min(len(s)-1, int(len(s)*0.95))],
+            "max": s[-1],
+            # 회전판 중 실제 성적 이상이 나온 비율. 낮을수록 «정렬»이 강하다.
+            "p_value_one_sided": round(sum(1 for v in s if v >= actual)/len(s), 3),
+            # 분포가 상수면 p 는 항상 1.0 이 된다 — 전부 꺼진 계열과 전부 켜진
+            # 계열이 JSON 에서 구분되지 않으므로 표시한다.
+            "degenerate": s[0] == s[-1]}
+
+
 def scorecard(panel, states, events):
+    """사건마다 «경보가 언제 울렸는가»를 적는다.
+
+    2026-09-05 교정 — v1 은 탐색 창이 `range(max(0, p-120), t+1)` 이었다.
+    `t`(저점)는 **사후에야 확정되는 인덱스**이고 폭락 «뒤»에 놓인다. 그래서 폭락이
+    끝난 다음 울린 경보도 「사전 경보」로 셌다 — 커밋된 `scorecard_KR_FULL.csv` 에
+    `rain_lead_vs_crash_sess = -144`(144세션 «늦은» 경보)가 성공으로 남아 있었고,
+    같은 사건들의 `avoided_if_derisk_at_rain_pct` 가 +41.0 / +87.3 / +9.9 였다
+    (경보 시점에 회피했으면 오히려 손해였다는 뜻이다).
+
+    이제 두 창을 나눈다.
+      · 사전(before)  [p-LEAD_WINDOW, p]  — 고점 «이전». 이것만 성적으로 센다.
+      · 지각(during)  (p, t]              — 폭락 진행 중. 사전 경보가 «없을 때만» 적는다.
+    상태 `states[j]` 자체는 j 시점까지의 패널로 계산되므로, 창을 좁히는 것은 상태
+    계산이 아니라 «채점»의 교정이다. 고점 당일(p)은 포함한다 — 그날 종가까지의
+    정보로 계산된 상태이므로 미래 정보가 아니다.
+
+    ⚠️ 이 교정으로도 남는 누출을 정직하게 적는다.
+      ① 창의 기준점 `p` 자체가 사후 확정값이다. 실전에는 `p` 가 없으므로 이 지표는
+         «회고 통계»이지 운용 특성이 아니다.
+      ② 사건 목록(detect_events)도 사후 선택이다 — 분자와 분모가 둘 다 사후 객체다.
+      ③ 가장 큰 누출은 그대로다 — FULL·V2_* 의 l2e/l3e 는 손으로 매긴 EVIDENCE 표에서
+         오고, 그 표의 근거는 고점 6~11세션 전부터 깔린다(미결 I-13). 즉 [p-120, p] 는
+         바로 그 라벨이 놓인 구간이다. **기계 입력만 쓰는 것은 L1ONLY 와 MECH 뿐이다.**
+    """
     rows = []; closes = [r["c"] for r in panel]
     for ev in events:
         p, t = ev["peak_i"], ev["trough_i"]
         crash_i = max(range(max(p,1), t+1),
                       key=lambda j: -(closes[j]/closes[j-1]-1)) if t > p else t
-        first_rain = next((j for j in range(max(0, p-120), t+1) if states[j] >= 2), None)
-        first_storm = next((j for j in range(max(0, p-120), t+1) if states[j] >= 3), None)
+        lo = max(0, p - LEAD_WINDOW)
+        first_rain  = next((j for j in range(lo, p+1) if states[j] >= 2), None)
+        first_storm = next((j for j in range(lo, p+1) if states[j] >= 3), None)
+        # 지각 경보는 «사전 경보가 없을 때만» 적는다 — 그래야 before + during 이
+        # 겹치지 않고 before_or_during 과 정확히 맞는다.
+        during_rain  = (next((j for j in range(p+1, t+1) if states[j] >= 2), None)
+                        if first_rain is None else None)
+        during_storm = (next((j for j in range(p+1, t+1) if states[j] >= 3), None)
+                        if first_storm is None else None)
+        # 「늦었지만 울리기는 했다」의 증거를 버리지 않는다 — 이 교정을 부른 -144 세션
+        # 같은 행이 그냥 사라지면 before/after 대조가 불가능해진다.
+        late = during_rain
         rows.append({
             "peak": panel[p]["date"], "trough": panel[t]["date"],
             "drawdown_pct": round(ev["trough_dd"]*100, 1),
             "crash_day": panel[crash_i]["date"],
             "crash_day_ret_pct": round((closes[crash_i]/closes[crash_i-1]-1)*100, 2),
             "first_rain": panel[first_rain]["date"] if first_rain is not None else "",
+            "rain_lead_vs_peak_sess": (p - first_rain) if first_rain is not None else "",
             "rain_lead_vs_crash_sess": (crash_i - first_rain) if first_rain is not None else "",
             "first_storm": panel[first_storm]["date"] if first_storm is not None else "",
+            "first_rain_during": panel[late]["date"] if late is not None else "",
+            "during_lead_vs_crash_sess": (crash_i - late) if late is not None else "",
+            "during_avoided_pct":
+                round((closes[t]/closes[late]-1)*100, 1) if late is not None else "",
+            "first_storm_during": panel[during_storm]["date"] if during_storm is not None else "",
             "avoided_if_derisk_at_rain_pct":
                 round((closes[t]/closes[first_rain]-1)*100, 1) if first_rain is not None else "",
+            # ⚠️ avoided 는 «경보 시점 가격» 기준이라 경보가 고점보다 높은 가격에서
+            #    울리면 사건 낙폭보다 커 보인다. 그 왜곡의 크기를 이 열로 드러낸다.
+            #    ⚠️ drawdown_pct 와 직접 비교하지 말 것 — detect_events 는 낙폭을
+            #       «그 시점의 롤링 252 고점» 기준으로 갱신하므로 drawdown_pct 는
+            #       closes[t]/closes[p]-1 과 다르다(실측 13건 중 4건, 최대 23.0pp 차).
+            "alarm_px_vs_peak_pct":
+                round((closes[first_rain]/closes[p]-1)*100, 1) if first_rain is not None else "",
         })
     return rows
 
@@ -491,6 +624,9 @@ def false_alarms(panel, states, events):
             while j+1 < n and states[j+1] >= 2: j += 1
             fwd = closes[i:min(n, i+61)]
             worst = min(x/closes[i]-1 for x in fwd)
+            # ⚠️ near_event 는 «서술»이지 채점이 아니다 — 사후 확정 경계(peak_i·end_i)를
+            #    쓰므로 PIT 가 아니며 성적(hit)에 들어가지 않는다. hit 는 이후 60세션
+            #    실현 수익률로만 판정하므로 PIT 청정하다.
             in_event = any(a-120 <= i <= b for a, b in ev_ranges)
             episodes.append({"start": panel[i]["date"], "end": panel[j]["date"],
                              "len_sess": j-i+1,
@@ -604,11 +740,15 @@ def wcsv(path, rows, cols):
 
 def analyze(tag, panel, variants, summary, floor=None):
     events = detect_events(panel)
+    for k in [k for k in R3_DIAG_BY if k.startswith(f"{tag}:")]:
+        del R3_DIAG_BY[k]        # 같은 tag 로 두 번 부르면 이전 회차가 남지 않게
     out_states = {}
     for variant in variants:
         if variant in V2_SPECS:
             renew, rel = V2_SPECS[variant]
-            states, log = run_machine_v2(panel, renew, rel, diag=R3_DIAG)
+            diag = new_r3_diag()
+            R3_DIAG_BY[f"{tag}:{variant}"] = diag
+            states, log = run_machine_v2(panel, renew, rel, diag=diag)
         else:
             fl = floor if variant.endswith("_X") else None
             base = variant.replace("_X", "")
@@ -623,7 +763,21 @@ def analyze(tag, panel, variants, summary, floor=None):
             w = csv.writer(f); w.writerow(["date", "reason"]); w.writerows(log)
         n_ep = len(fa); n_hit = sum(1 for e in fa if e["hit"])
         summary.setdefault(tag, {})[variant] = {
+            # 2026-09-05 — 「사전」의 정의를 고점 이전으로 좁혔다. 네 값을 함께 낸다.
+            #   before             고점 이전에 울렸다 (엄격 · 이것이 성적이다)
+            #   during             사전 경보 «없이» 폭락 진행 중에 울렸다 (성적 아님)
+            #   before_or_during   v1 의 정의 — 직전 판과 대조하기 위해 남긴다
+            #   null               같은 계열을 원형 회전시킨 귀무분포 (우연 기준선)
             "events_with_rain_before": sum(1 for r in sc if r["first_rain"]),
+            "events_with_rain_during": sum(1 for r in sc if r["first_rain_during"]),
+            "events_with_rain_before_or_during":
+                sum(1 for r in sc if r["first_rain"] or r["first_rain_during"]),
+            "events_with_storm_before": sum(1 for r in sc if r["first_storm"]),
+            "caught_null": null_baseline(states, events),
+            # ⚠️ false 면 그 변형의 l2e/l3e 가 손으로 매긴 EVIDENCE 표에서 온다 —
+            #    caught_null 의 낮은 p 를 예측력으로 읽으면 안 된다(미결 I-13).
+            "machine_inputs_only": variant in MACHINE_ONLY_VARIANTS,
+            "lead_window_sessions": LEAD_WINDOW,
             "events_total": len(sc),
             "rain_episodes": n_ep, "episodes_hit": n_hit,
             "false_alarm_rate": round(1 - n_hit/n_ep, 2) if n_ep else None,
@@ -750,10 +904,24 @@ def main():
         wcsv(f"{OUT}/state_monthly_{tag}.csv", monthly,
              ["month", "state", "close", "vix", "vk"])
 
+    # G-4 교정 — 변형별로 따로 세고 «고유 세션 수»를 별도 필드로 낸다.
+    # v1 의 `verdict_diverged` 는 변형들의 «합»이었고 그 사실이 어디에도 없었다.
+    # 원본 행(날짜·vk·중앙값+10·방향)은 그대로 보존한다 — R-3b 의 유일한 실증 근거가
+    # 「갈린 구간이 전부 중앙값+10 > 35 였다」이므로 그 값을 지우면 검증이 불가능해진다.
+    seen = {}
+    for key, d in sorted(R3_DIAG_BY.items()):
+        for row in d["diverge_rows"]:
+            e = seen.setdefault(row[0], {"row": row, "variants": []})
+            e["variants"].append(key)
     summary["r3_release_gate"] = {
-        "gate_evaluations": R3_DIAG["gate_evals"],
-        "verdict_diverged": R3_DIAG["gate_diverge"],
-        "rows": R3_DIAG["diverge_rows"][:50]}
+        "by_variant": {k: {"gate_evaluations": d["gate_evals"],
+                           "verdict_diverged": d["gate_diverge"]}
+                       for k, d in sorted(R3_DIAG_BY.items())},
+        "gate_evaluations_total": sum(d["gate_evals"] for d in R3_DIAG_BY.values()),
+        "verdict_diverged_total": sum(d["gate_diverge"] for d in R3_DIAG_BY.values()),
+        "verdict_diverged_unique_sessions": len(seen),
+        "rows_unique": [{"date": d, "row": e["row"], "variants": e["variants"]}
+                        for d, e in sorted(seen.items())][:50]}
 
     with open(f"{OUT}/summary.json", "w") as f:
         json.dump(summary, f, ensure_ascii=False, indent=1)
