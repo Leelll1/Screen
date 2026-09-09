@@ -1,10 +1,10 @@
 op,code,rows,note,run_at_kst
-getGrantingOfCreditBalanceInfo,EXC URLError: <urlopen error timed out>,0,page1 실패,2026-09-09 14:07
-NETWORK,DOWN,0,"연속 타임아웃 4회 — 포털 도달 불가로 판정, 남은 호출 생략. 같은 키가 다른 경로에서 동작하는지 확인할 것",2026-09-09 14:07
-getSecuritiesMarketTotalCapitalInfo,EXC URLError: <urlopen error timed out>,0,page1 실패,2026-09-09 14:07
-getCMAStatus,SKIP 포털 도달 불가(조기 중단),0,page1 실패,2026-09-09 14:07
-getETFPriceInfo,SKIP 포털 도달 불가(조기 중단),0,basDt=20260908 page=1,2026-09-09 14:07
-getETFPriceInfo,SKIP 포털 도달 불가(조기 중단),0,basDt=20260907 page=1,2026-09-09 14:07
-getETFPriceInfo,SKIP 포털 도달 불가(조기 중단),0,basDt=20260904 page=1,2026-09-09 14:07
-getETFPriceInfo,SKIP 포털 도달 불가(조기 중단),0,basDt=20260903 page=1,2026-09-09 14:07
-getETFPriceInfo,SKIP 포털 도달 불가(조기 중단),0,basDt=20260902 page=1,2026-09-09 14:07
+getGrantingOfCreditBalanceInfo,EXC URLError: <urlopen error timed out>,0,page1 실패,2026-09-09 22:16
+NETWORK,DOWN,0,"연속 타임아웃 4회 — 포털 도달 불가로 판정, 남은 호출 생략. 같은 키가 다른 경로에서 동작하는지 확인할 것",2026-09-09 22:16
+getSecuritiesMarketTotalCapitalInfo,EXC URLError: <urlopen error timed out>,0,page1 실패,2026-09-09 22:16
+getCMAStatus,SKIP 포털 도달 불가(조기 중단),0,page1 실패,2026-09-09 22:16
+getETFPriceInfo,SKIP 포털 도달 불가(조기 중단),0,basDt=20260908 page=1,2026-09-09 22:16
+getETFPriceInfo,SKIP 포털 도달 불가(조기 중단),0,basDt=20260907 page=1,2026-09-09 22:16
+getETFPriceInfo,SKIP 포털 도달 불가(조기 중단),0,basDt=20260904 page=1,2026-09-09 22:16
+getETFPriceInfo,SKIP 포털 도달 불가(조기 중단),0,basDt=20260903 page=1,2026-09-09 22:16
+getETFPriceInfo,SKIP 포털 도달 불가(조기 중단),0,basDt=20260902 page=1,2026-09-09 22:16
