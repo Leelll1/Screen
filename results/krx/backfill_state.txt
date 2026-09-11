@@ -1,8 +1,8 @@
-as_of=2026-09-11T13:12:36+00:00
-bas_dd=20260910
+as_of=2026-09-11T22:26:59+00:00
+bas_dd=20260911
 target=245
-complete_rows=64
-vkospi_rows=65
+complete_rows=67
+vkospi_rows=68
 pending_targets=5
 filled_this_run=3
 dead_holiday=0
