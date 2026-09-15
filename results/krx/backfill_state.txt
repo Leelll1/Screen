@@ -1,10 +1,10 @@
-as_of=2026-09-14T22:28:58+00:00
+as_of=2026-09-15T05:04:47+00:00
 bas_dd=20260914
 target=245
-complete_rows=74
-vkospi_rows=75
+complete_rows=76
+vkospi_rows=77
 pending_targets=5
-filled_this_run=2
+filled_this_run=1
 dead_holiday=0
 dead_incomplete=3
 horizon_days=540

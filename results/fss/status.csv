@@ -1,7 +1,6 @@
 op,code,rows,note,run_at_kst
-getGrantingOfCreditBalanceInfo,00,30,total=1184 최신=20260911 정렬=최신순 페이지=1 경계버림=20260731,2026-09-15 07:29
-getSecuritiesMarketTotalCapitalInfo,EXC HTTPError: HTTP Error 504: Gateway Timeout,0,page1 실패,2026-09-15 07:29
-getCMAStatus,00,30,total=14364 최신=20260911 정렬=최신순 페이지=4 경계버림=20260731,2026-09-15 07:29
-getCMAStatus:합계행,-,29,날짜 29개 중 합계행 사용 29개,2026-09-15 07:29
-getETFPriceInfo,00,0,basDt=20260914 0행 — 미공개(D+1 규칙),2026-09-15 07:29
-getETFPriceInfo,00,1168,basDt=20260911 레버리지 3154134657733,2026-09-15 07:29
+getGrantingOfCreditBalanceInfo,00,30,total=1184 최신=20260911 정렬=최신순 페이지=1 경계버림=20260731,2026-09-15 14:04
+getSecuritiesMarketTotalCapitalInfo,00,30,total=1197 최신=20260911 정렬=최신순 페이지=1 경계버림=20260731,2026-09-15 14:04
+getCMAStatus,00,30,total=14364 최신=20260911 정렬=최신순 페이지=4 경계버림=20260731,2026-09-15 14:04
+getCMAStatus:합계행,-,29,날짜 29개 중 합계행 사용 29개,2026-09-15 14:04
+getETFPriceInfo,00,1168,basDt=20260914 레버리지 2959797364269,2026-09-15 14:04
