@@ -1,0 +1,8 @@
+run_utc,source,status,rows,added,changed,detail
+2026-09-22T22:40:37Z,cftc_legacy,OK,,,,700행 수신 (최신 2026-09-15)
+2026-09-22T22:40:37Z,cftc_tff,OK,,,,700행 수신 (최신 2026-09-15)
+2026-09-22T22:40:37Z,cftc_merge,OK,700,700,0,cftc_es.csv 전체 700행
+2026-09-22T22:40:37Z,finra,OK,356,356,0,최신 2026-08 · 전체 356행
+2026-09-22T22:40:37Z,cboe_total,FAIL,,,,HTTPError HTTP Error 403: Forbidden
+2026-09-22T22:40:37Z,cboe_equity,FAIL,,,,HTTPError HTTP Error 403: Forbidden
+2026-09-22T22:40:37Z,cboe_index,FAIL,,,,HTTPError HTTP Error 403: Forbidden
