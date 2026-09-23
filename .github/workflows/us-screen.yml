@@ -19,13 +19,21 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
+      # 2026-09-24 (screen.py v1.2): 스크립트가 차단·실패해도 커밋 단계까지 간다.
+      # 실패한 실행은 알람 파일 «하나만» 커밋하고, 맨 끝 「수집 상태 확인」이 빨간불로 끝낸다.
       - name: Run screen
+        id: screen
+        continue-on-error: true
         run: python screen.py
       - name: Commit results (PIT snapshot)
         run: |
           git config user.name "us-screen-bot"
           git config user.email "actions@github.com"
-          git add results/
+          if [ "${{ steps.screen.outcome }}" = "success" ]; then
+            git add results/
+          else
+            git add results/_meta/screen_run_alarm.txt || true
+          fi
           git diff --cached --quiet && exit 0
           git commit -m "screen $(date -u +%F)"
           for i in 1 2 3; do
@@ -33,3 +41,11 @@ jobs:
             git pull --rebase && sleep $((i*5))
           done
           git push
+      - name: 수집 상태 확인
+        if: always()
+        run: |
+          if [ "${{ steps.screen.outcome }}" != "success" ]; then
+            echo "::error::screen.py 단계 실패 (outcome=${{ steps.screen.outcome }})"
+            if [ -f results/_meta/screen_run_alarm.txt ]; then cat results/_meta/screen_run_alarm.txt; fi
+            exit 1
+          fi
