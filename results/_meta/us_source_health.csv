@@ -6,3 +6,13 @@ run_utc,source,status,rows,added,changed,detail
 2026-09-22T22:40:37Z,cboe_total,FAIL,,,,HTTPError HTTP Error 403: Forbidden
 2026-09-22T22:40:37Z,cboe_equity,FAIL,,,,HTTPError HTTP Error 403: Forbidden
 2026-09-22T22:40:37Z,cboe_index,FAIL,,,,HTTPError HTTP Error 403: Forbidden
+2026-09-23T22:40:52Z,cftc_legacy,OK,,,,700행 수신 (최신 2026-09-15)
+2026-09-23T22:40:52Z,cftc_tff,OK,,,,700행 수신 (최신 2026-09-15)
+2026-09-23T22:40:52Z,cftc_merge,OK,700,0,0,cftc_es.csv 전체 700행
+2026-09-23T22:40:52Z,finra,OK,356,0,0,최신 2026-08 · 전체 356행
+2026-09-23T22:40:52Z,cboe_probe_vix_botua,PROBE,,,,"HTTP 200 · server=cloudflare · DATE,OPEN,HIGH,LOW,CLOSE 01/02/1990,17.240000,17.240000,17.240000,17.240000 01/03/1990,18.190000,18.190000,18.190000,18."
+2026-09-23T22:40:52Z,cboe_probe_vix_browserua,PROBE,,,,"HTTP 200 · server=cloudflare · DATE,OPEN,HIGH,LOW,CLOSE 01/02/1990,17.240000,17.240000,17.240000,17.240000 01/03/1990,18.190000,18.190000,18.190000,18."
+2026-09-23T22:40:52Z,cboe_probe_totalpc_browserua,PROBE,,,,"HTTP 403 · server=cloudflare · <?xml version=""1.0"" encoding=""UTF-8""?> <Error><Code>AccessDenied</Code><Message>Access Denied</Message><RequestId>26WB87"
+2026-09-23T22:40:52Z,cboe_total,FAIL,,,,HTTPError HTTP Error 403: Forbidden
+2026-09-23T22:40:52Z,cboe_equity,FAIL,,,,HTTPError HTTP Error 403: Forbidden
+2026-09-23T22:40:52Z,cboe_index,FAIL,,,,HTTPError HTTP Error 403: Forbidden
