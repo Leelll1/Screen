@@ -359,8 +359,56 @@ CBOE_URLS = [
 ]
 CBOE_FIELDS = ["date", "total_pc", "equity_pc", "index_pc", "fetched_utc"]
 
+# ── 원인 가르기 시험 (2026-09-23 추가) ──────────────────────────────────
+# 2026-09-22 첫 러너 실행에서 위 세 주소가 모두 HTTP 403 을 받았다.
+# 403 의 원인 후보는 셋이다.
+#   (가) 주소가 틀렸다 — 파일 서버(클라우드 저장소형)는 없는 파일에 404 대신
+#        403 을 돌려주는 일이 흔하다.
+#   (나) CBOE 가 이 수집기의 사용자 에이전트(봇처럼 보이는 UA)를 막는다.
+#   (다) CBOE 가 GitHub 러너의 IP(데이터센터)를 통째로 막는다.
+# 판정표 — 확실히 있는 파일(VIX_History.csv)을 두 가지 UA 로 불러 본다.
+#   VIX·봇UA 성공                         → (다) 아님. 풋콜 403 은 (가) 주소 문제
+#   VIX·봇UA 실패 · VIX·브라우저UA 성공    → (나) UA 문제 → UA 만 바꾸면 된다
+#   VIX 둘 다 실패                         → (다) IP 차단 → 다른 소스로 바꿔야 한다
+# 응답 본문 앞부분도 남긴다 — «<Error><Code>AccessDenied» 면 저장소가 없는 파일에
+# 답한 것이고, HTML 차단 페이지면 방화벽이 막은 것이다.
+# 이 시험은 알람을 만들지 않는다(기록만). 원인이 가려지면 이 블록은 지운다.
+BROWSER_UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+              "(KHTML, like Gecko) Chrome/128.0 Safari/537.36")
+CBOE_PROBES = [
+    ("vix_botua", "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX_History.csv", UA),
+    ("vix_browserua", "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX_History.csv", BROWSER_UA),
+    ("totalpc_browserua", CBOE_URLS[0][1], BROWSER_UA),
+]
+
+
+def _probe_once(url, ua, timeout=30):
+    """한 번만 부른다(재시도 없음). 반환 — (상태코드, 응답 서버 머리글, 본문 앞 120자)"""
+    req = urllib.request.Request(url, headers={"User-Agent": ua, "Accept": "*/*"})
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            body = r.read(400)
+            return r.status, r.headers.get("Server", ""), body
+    except urllib.error.HTTPError as e:
+        try:
+            body = e.read(400)
+        except Exception:  # noqa: BLE001
+            body = b""
+        return e.code, e.headers.get("Server", "") if e.headers else "", body
+    except Exception as e:  # noqa: BLE001 — 연결 자체 실패
+        return 0, "", f"{type(e).__name__} {e}".encode()
+
+
+def probe_cboe():
+    for name, url, ua in CBOE_PROBES:
+        code, server, body = _probe_once(url, ua)
+        snippet = body.decode("utf-8", errors="replace")[:120]
+        snippet = " ".join(snippet.split())  # 줄바꿈 제거 — CSV 한 칸에 들어가게
+        record(f"cboe_probe_{name}", "PROBE", f"HTTP {code} · server={server or '-'} · {snippet}")
+
 
 def fetch_cboe():
+    probe_cboe()
     merged = {}
     ok_any = False
     for kind, url in CBOE_URLS:
