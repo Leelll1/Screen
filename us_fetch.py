@@ -348,160 +348,171 @@ def fetch_finra():
 # ─────────────────────────────────────────────────────────────────────
 # ③ CBOE — 풋콜 비율 (일 1회)
 # ─────────────────────────────────────────────────────────────────────
-# ⚠️ [2026-09-24 확인] 아래 CBOE_URLS 세 주소는 처음 만들 때 «짐작»으로 넣은 것이며
-#    «없는 파일»이다 — 2026-09-24 러너 시험에서 같은 서버의 VIX_History.csv 는 봇 UA 로도
-#    HTTP 200 이었고 이 주소만 AccessDenied(403)였다(저장소형 서버가 없는 파일에 주는 응답).
-#    CBOE 공식 「과거 자료」 페이지의 풋콜 CSV 목록
+# 어디서 받나 [2026-09-24 · 90차 수정]
+#    CBOE 공식 「일일 시장 통계」 웹페이지 한 곳이다.
+#      https://www.cboe.com/us/options/market_statistics/daily/
+#    내려받기 파일·API 는 찾지 못했다 — 공식 「과거 자료」 페이지의 풋콜 CSV 목록
 #    (cdn.cboe.com/resources/options/volume_and_call_put_ratios/*.csv)은 페이지 문구상
-#    2019-10-04 까지만 담는다 — 갱신이 멈췄다. 현재 값은 공식 「일일 시장 통계」 웹페이지
-#    화면에만 보인다. 그 페이지를 읽을 수 있는지를 아래 시험(probe_cboe)이 잰다.
-#    결론이 날 때까지 이 수집은 실패하고 run_alarm.txt 에 남는다. ①② 는 그대로 수집된다.
-#    실패하면 run_alarm.txt 에 남고, 그때까지 풋콜은 세션의 알파밴티지 도구
-#    (HISTORICAL_PUT_CALL_RATIO · SPY)가 계속 맡는다.
-CBOE_URLS = [
-    ("total", "https://cdn.cboe.com/api/global/us_indices/daily_prices/total_pc.csv"),
-    ("equity", "https://cdn.cboe.com/api/global/us_indices/daily_prices/equity_pc.csv"),
-    ("index", "https://cdn.cboe.com/api/global/us_indices/daily_prices/index_pc.csv"),
-]
-CBOE_FIELDS = ["date", "total_pc", "equity_pc", "index_pc", "fetched_utc"]
-
-# ── 공식 일일 통계 페이지 시험 (2026-09-24 · 89차) ─────────────────────────
-# 2026-09-23 의 «원인 가르기 시험»은 결론을 냈다(주소 문제 · IP·UA 차단 아님)
-# — 그 블록은 지웠다. 이제 재는 것은 «공식 일일 시장 통계 웹페이지를 러너가 읽을
-# 수 있는가, 화면에서 전체·지수·개별주식 풋콜 비율 세 값이 뽑히는가»다.
-#   page_today  날짜 지정 없이 부른 페이지
-#   page_dt     ?dt=<직전 평일> 로 부른 페이지 — 날짜를 바꾸면 값이 바뀌는지 본다
-# 기록만 한다(status=PROBE · 알람 없음). 기록 칸 — HTTP 코드 · 바이트 수 · 뽑힌 세 값 ·
-# 페이지 안의 날짜 모양 문자열 · 자료 주소로 보이는 문자열(json·csv·api) 최대 3개.
-# 판정은 다음 대화 창이 한다. 결론이 나면 이 블록은 지운다.
+#    2019-10-04 까지만 담고 갱신이 멈췄다. 처음 넣었던 cdn.cboe.com/api/global/us_indices/
+#    daily_prices/*_pc.csv 세 주소는 «짐작»이었고 없는 파일이었다(2026-09-23 러너 시험 —
+#    같은 서버의 VIX_History.csv 는 200 인데 이 주소만 AccessDenied 403). 그 주소들은 지웠다.
+#    2026-09-24 러너 시험(수동 실행 · 07:18 ET): 브라우저 UA 로 HTTP 200 · 약 447 KB ·
+#    화면 글자에서 TOTAL / INDEX / EQUITY PUT/CALL RATIO 세 값(0.86 · 1.04 · 0.46)이 뽑혔고,
+#    9/23 의 전체·개별주식 값이 YCharts 와 일치했다(지수 값은 대조하지 않았다).
+#
+# 날짜를 어떻게 매기나 — 페이지 화면 글자에 날짜가 없다(위 시험 · dates=-).
+#    그래서 «실행 시각»으로 매긴다. 기준은 미국 동부 시각(ET · 서머타임 자동 반영)이다.
+#      ㉮ 평일 17:00 ET 이후 실행   → 그날   (장 마감 16:00 ET 뒤 1시간 이상 지남)
+#      ㉯ 09:00 ET 이전 실행       → 직전 평일 (장 시작 전에는 직전 거래일 값을 보여 준다 — 위 시험)
+#      ㉰ 토·일 실행                → 직전 금요일
+#      ㉱ 평일 09:00~17:00 ET      → 저장하지 않는다 (장중·마감 직후 — 화면 값이 어느 날 것인지 모른다)
+#    매일 22:30 UTC 실행(07:30 KST)은 18:30 EDT · 17:30 EST 라서 ㉮ 에 든다.
+#    금요일 추가 실행(20:30 UTC = 16:30 EDT · 15:30 EST)은 ㉱ 라서 저장하지 않는다.
+#    ⚠️ ㉮ 의 «17:00 ET 이후면 그날 마감 값을 보여 준다»는 «미시험»이다. 첫 며칠은 대화 창이
+#       다른 자료처(YCharts 등)와 날짜별로 대조해 하루 밀림이 없는지 확인한다.
+#    휴장일 — 목록을 두지 않는다. 휴장일에는 화면이 직전 거래일 값을 그대로 보여 줄 것이므로,
+#       세 값이 이 파일의 마지막 행과 «셋 다 같으면» 저장하지 않고 NOTE 로 남긴다.
+#       화면 갱신이 늦은 날도 같은 길로 걸러진다. 다음 날 아침(㉯) 실행이 있으면 그 행을 바로잡는다.
+#
+# 실패를 어떻게 알리나
+#    페이지를 못 받거나, 세 값 중 하나라도 안 뽑히면 run_alarm.txt 에 남긴다(빨간불).
+#    조용히 틀린 값을 쌓지 않는다 — 세 값이 다 뽑힌 실행만 한 행을 쓴다.
+#
+# 시험 한 줄(PROBE · 알람 없음) — ?dt= 로 지난 날짜를 부를 수 있는가
+#    매 실행 ?dt=<매긴 날짜보다 3평일 앞> 으로 한 번 더 불러 세 값을 기록한다.
+#    값이 오늘 화면과 다르면 지난 날짜를 부를 수 있다는 뜻이다(소급 수집이 가능해진다).
+#    판정은 대화 창이 한다. 결론이 나면 이 시험은 지운다.
+#
+# 그동안에도 풋콜은 세션의 알파밴티지 도구(HISTORICAL_PUT_CALL_RATIO · SPY)가 따로 맡는다.
 BROWSER_UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
               "(KHTML, like Gecko) Chrome/128.0 Safari/537.36")
 CBOE_DAILY_PAGE = "https://www.cboe.com/us/options/market_statistics/daily/"
 PC_LABELS = (("total", "TOTAL PUT/CALL RATIO"),
              ("index", "INDEX PUT/CALL RATIO"),
              ("equity", "EQUITY PUT/CALL RATIO"))
+CBOE_FIELDS = ["date", "total_pc", "equity_pc", "index_pc", "fetched_utc"]
+CBOE_CSV = os.path.join(OUT_DIR, "cboe_putcall.csv")
+MARKET_TZ = "America/New_York"
 
 
-def _prev_weekday_iso():
-    from datetime import timedelta
-    d = datetime.now(timezone.utc).date() - timedelta(days=1)
-    while d.weekday() >= 5:
-        d -= timedelta(days=1)
-    return d.isoformat()
+def _cboe_page(url, timeout=60, retries=3):
+    """브라우저 UA 로 페이지를 받아 글자로 돌려준다. 끝내 실패하면 예외를 올린다."""
+    last = None
+    for attempt in range(1, retries + 1):
+        req = urllib.request.Request(url, headers={"User-Agent": BROWSER_UA, "Accept": "text/html"})
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as r:
+                return r.read().decode("utf-8", errors="replace")
+        except Exception as e:  # noqa: BLE001 — 어떤 실패든 재시도 대상
+            last = e
+            log(f"    시도 {attempt}/{retries} 실패: {e}")
+            if attempt < retries:
+                time.sleep(attempt * 5)
+    raise last
 
 
-def _page_summary(html):
-    """HTML 에서 세 비율 · 날짜 모양 문자열 · 자료 주소 후보를 뽑아 한 줄로 만든다."""
+def _pc_values(html):
+    """화면 글자에서 세 비율을 뽑는다. 반환 — {"total": "0.86", ...} (못 뽑은 것은 빠진다)"""
     import re
     text = re.sub(r"<script[\s\S]*?</script>|<style[\s\S]*?</style>", " ", html, flags=re.I)
     text = re.sub(r"<[^>]+>", " ", text)
     text = " ".join(text.split())
-    vals = []
+    out = {}
     for key, label in PC_LABELS:
         m = re.search(re.escape(label) + r"\s*:?\s*([0-9]+\.[0-9]+)", text, flags=re.I)
-        vals.append(f"{key}={m.group(1) if m else 'NA'}")
-    dates = re.findall(r"\b(20[0-9]{2}-[01][0-9]-[0-3][0-9]|[A-Z][a-z]+ [0-9]{1,2}, 20[0-9]{2})\b", text)
-    urls = re.findall(r"https?://[^\s\"'<>]+?(?:\.json|\.csv|/api/[^\s\"'<>]*|daily_options)[^\s\"'<>]*", html)
-    uniq = []
-    for u in urls:
-        if u not in uniq:
-            uniq.append(u)
-    return (" ".join(vals) + f" · dates={'|'.join(dict.fromkeys(dates[:3])) or '-'}"
-            + f" · urls={'|'.join(uniq[:3]) or '-'}")
+        if m:
+            out[key] = m.group(1)
+    return out
 
 
-def _probe_once(url, ua, timeout=30):
-    """한 번만 부른다(재시도 없음). 반환 — (상태코드, 응답 서버 머리글, 본문 앞 120자)"""
-    req = urllib.request.Request(url, headers={"User-Agent": ua, "Accept": "*/*"})
+def _date_strings(html, limit=5):
+    """페이지 전체(스크립트 포함)의 날짜 모양 문자열 — 날짜 매김을 나중에 검산하려는 기록일 뿐이다."""
+    import re
+    found = re.findall(r"\b(20[0-9]{2}-[01][0-9]-[0-3][0-9]|[01][0-9]/[0-3][0-9]/20[0-9]{2})\b", html)
+    return list(dict.fromkeys(found))[:limit]
+
+
+def _label_date(now_utc=None):
+    """실행 시각으로 날짜를 매긴다(위 ㉮~㉱). 반환 — (날짜 ISO 또는 None, 규칙 이름, ET 시각 문자열)"""
+    from datetime import timedelta
+    from zoneinfo import ZoneInfo
+    et = (now_utc or datetime.now(timezone.utc)).astimezone(ZoneInfo(MARKET_TZ))
+    d = et.date()
+    stamp = et.strftime("%Y-%m-%d %H:%M ET")
+    if d.weekday() >= 5:                       # 토(5)·일(6) → 직전 금요일
+        return ((d - timedelta(days=d.weekday() - 4)).isoformat(), "weekend", stamp)
+    if et.hour >= 17:
+        return (d.isoformat(), "after_close", stamp)
+    if et.hour < 9:
+        return (_weekdays_before(d.isoformat(), 1), "before_open", stamp)
+    return (None, "market_hours", stamp)
+
+
+def _weekdays_before(iso, n):
+    """iso 날짜보다 n 평일 앞의 날짜(ISO)."""
+    from datetime import date, timedelta
+    x = date.fromisoformat(iso)
+    while n > 0:
+        x -= timedelta(days=1)
+        if x.weekday() < 5:
+            n -= 1
+    return x.isoformat()
+
+
+def _last_row(path):
+    if not os.path.exists(path):
+        return None
+    with open(path, "r", encoding="utf-8", newline="") as f:
+        rows = list(csv.DictReader(f))
+    return max(rows, key=lambda r: r["date"]) if rows else None
+
+
+def fetch_cboe(now_utc=None):
+    label, rule, stamp = _label_date(now_utc)
     try:
-        with urllib.request.urlopen(req, timeout=timeout) as r:
-            body = r.read(400)
-            return r.status, r.headers.get("Server", ""), body
-    except urllib.error.HTTPError as e:
-        try:
-            body = e.read(400)
-        except Exception:  # noqa: BLE001
-            body = b""
-        return e.code, e.headers.get("Server", "") if e.headers else "", body
-    except Exception as e:  # noqa: BLE001 — 연결 자체 실패
-        return 0, "", f"{type(e).__name__} {e}".encode()
-
-
-def probe_cboe():
-    for name, url in (("page_today", CBOE_DAILY_PAGE),
-                      ("page_dt", CBOE_DAILY_PAGE + "?dt=" + _prev_weekday_iso())):
-        code, server, head = _probe_once(url, BROWSER_UA)
-        # 200 이 아니면 응답 본문 앞부분(연결 실패면 오류 문구)을 남긴다
-        summary = " ".join(head.decode("utf-8", errors="replace")[:120].split()) or "-"
-        nbytes = 0
-        if code == 200:
-            try:
-                req = urllib.request.Request(url, headers={"User-Agent": BROWSER_UA, "Accept": "text/html"})
-                with urllib.request.urlopen(req, timeout=30) as r:
-                    raw = r.read()
-                nbytes = len(raw)
-                summary = _page_summary(raw.decode("utf-8", errors="replace"))
-            except Exception as e:  # noqa: BLE001
-                summary = f"본문 읽기 실패 {type(e).__name__} {e}"
-        record(f"cboe_probe_{name}", "PROBE",
-               f"HTTP {code} · server={server or '-'} · bytes={nbytes} · {summary}"[:600])
-
-
-def fetch_cboe():
-    probe_cboe()
-    merged = {}
-    ok_any = False
-    for kind, url in CBOE_URLS:
-        try:
-            raw = http_get(url, accept="text/csv")
-        except Exception as e:  # noqa: BLE001
-            record(f"cboe_{kind}", "FAIL", f"{type(e).__name__} {e}")
-            continue
-
-        text = raw.decode("utf-8", errors="replace")
-        # 머리글 위에 설명 줄이 붙는 경우가 있으므로 'date' 가 보이는 줄부터 읽는다.
-        lines = text.splitlines()
-        start = 0
-        for i, ln in enumerate(lines[:20]):
-            if "date" in ln.lower():
-                start = i
-                break
-        reader = csv.DictReader(io.StringIO("\n".join(lines[start:])))
-        n = 0
-        for r in reader:
-            dkey = next((v for k, v in r.items() if k and "date" in k.lower()), None)
-            ratio = next((v for k, v in r.items()
-                          if k and ("ratio" in k.lower() or "p/c" in k.lower() or "pc" == k.lower().strip())), None)
-            if not dkey or ratio in (None, ""):
-                continue
-            d = _norm_date(dkey)
-            if not d:
-                continue
-            merged.setdefault(d, {"date": d, "fetched_utc": RUN_UTC})[f"{kind}_pc"] = ratio
-            n += 1
-        if n:
-            ok_any = True
-            record(f"cboe_{kind}", "OK", f"{n}행")
-        else:
-            record(f"cboe_{kind}", "EMPTY", "0행 — 형식이 예상과 다르다")
-
-    if not ok_any:
-        alarms.append("cboe: 세 계열 모두 0행 — 주소나 형식이 바뀌었다(최초 배선은 미시험이었다)")
+        html = _cboe_page(CBOE_DAILY_PAGE)
+    except Exception as e:  # noqa: BLE001
+        record("cboe_page", "FAIL", f"{type(e).__name__} {e}"[:600])
+        alarms.append(f"cboe: 일일 통계 페이지를 받지 못했다 — {type(e).__name__} {e}")
         return
 
-    total, added, changed = merge_csv(
-        os.path.join(OUT_DIR, "cboe_putcall.csv"), CBOE_FIELDS, list(merged.values()), "date")
-    record("cboe_merge", "OK", f"cboe_putcall.csv 전체 {total}행", total, added, changed)
+    vals = _pc_values(html)
+    got = " ".join(f"{k}={vals.get(k, 'NA')}" for k, _ in PC_LABELS)
+    ctx = (f"{stamp} · 규칙 {rule} · 매긴 날짜 {label or '-'} · "
+           f"페이지 날짜 모양 {'|'.join(_date_strings(html)) or '-'} · bytes={len(html)}")
+    missing = [k for k, _ in PC_LABELS if k not in vals]
+    if missing:
+        record("cboe_page", "FAIL", f"{got} · {ctx}"[:600])
+        alarms.append(f"cboe: 페이지에서 {'·'.join(missing)} 비율을 뽑지 못했다 — 화면 문구가 바뀌었을 수 있다")
+        return
+    record("cboe_page", "OK", f"{got} · {ctx}"[:600])
 
+    # 시험 한 줄 — 지난 날짜를 부를 수 있는가(알람 없음)
+    probe_day = _weekdays_before(label or stamp[:10], 3)
+    try:
+        pv = _pc_values(_cboe_page(CBOE_DAILY_PAGE + "?dt=" + probe_day, retries=1))
+        same = all(pv.get(k) == vals[k] for k, _ in PC_LABELS)
+        record("cboe_probe_dt", "PROBE",
+               f"dt={probe_day} · " + " ".join(f"{k}={pv.get(k, 'NA')}" for k, _ in PC_LABELS)
+               + f" · 오늘 화면과 {'같음' if same else '다름'}")
+    except Exception as e:  # noqa: BLE001
+        record("cboe_probe_dt", "PROBE", f"dt={probe_day} · 실패 {type(e).__name__} {e}"[:600])
 
-def _norm_date(s):
-    s = str(s).strip()
-    for fmt in ("%Y-%m-%d", "%m/%d/%Y", "%m/%d/%y", "%Y/%m/%d", "%Y-%m-%dT%H:%M:%S"):
-        try:
-            return datetime.strptime(s[:19] if "T" in s else s, fmt).strftime("%Y-%m-%d")
-        except ValueError:
-            continue
-    return None
+    if label is None:
+        record("cboe_store", "NOTE", f"저장 안 함 — {stamp} 는 장중·마감 직후라 화면 값의 날짜를 정할 수 없다")
+        return
+
+    last = _last_row(CBOE_CSV)
+    if last and last["date"] < label and all(str(last.get(f"{k}_pc", "")) == vals[k] for k, _ in PC_LABELS):
+        record("cboe_store", "NOTE",
+               f"저장 안 함 — 세 값이 마지막 행({last['date']})과 같다 · 휴장일이거나 화면 갱신 전으로 본다")
+        return
+
+    row = {"date": label, "fetched_utc": RUN_UTC}
+    for k, _ in PC_LABELS:
+        row[f"{k}_pc"] = vals[k]
+    total, added, changed = merge_csv(CBOE_CSV, CBOE_FIELDS, [row], "date")
+    record("cboe_merge", "OK", f"{label} 저장 · cboe_putcall.csv 전체 {total}행", total, added, changed)
 
 
 def main():
