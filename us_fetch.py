@@ -348,8 +348,14 @@ def fetch_finra():
 # ─────────────────────────────────────────────────────────────────────
 # ③ CBOE — 풋콜 비율 (일 1회)
 # ─────────────────────────────────────────────────────────────────────
-# ⚠️ 2026-09-22 현재 이 경로는 «미시험»이다 — 세션에서 cboe.com 이 막혀 있어
-#    첫 러너 실행이 되어야 확인된다. 실패해도 ①② 는 그대로 수집된다.
+# ⚠️ [2026-09-24 확인] 아래 CBOE_URLS 세 주소는 처음 만들 때 «짐작»으로 넣은 것이며
+#    «없는 파일»이다 — 2026-09-24 러너 시험에서 같은 서버의 VIX_History.csv 는 봇 UA 로도
+#    HTTP 200 이었고 이 주소만 AccessDenied(403)였다(저장소형 서버가 없는 파일에 주는 응답).
+#    CBOE 공식 「과거 자료」 페이지의 풋콜 CSV 목록
+#    (cdn.cboe.com/resources/options/volume_and_call_put_ratios/*.csv)은 페이지 문구상
+#    2019-10-04 까지만 담는다 — 갱신이 멈췄다. 현재 값은 공식 「일일 시장 통계」 웹페이지
+#    화면에만 보인다. 그 페이지를 읽을 수 있는지를 아래 시험(probe_cboe)이 잰다.
+#    결론이 날 때까지 이 수집은 실패하고 run_alarm.txt 에 남는다. ①② 는 그대로 수집된다.
 #    실패하면 run_alarm.txt 에 남고, 그때까지 풋콜은 세션의 알파밴티지 도구
 #    (HISTORICAL_PUT_CALL_RATIO · SPY)가 계속 맡는다.
 CBOE_URLS = [
@@ -359,27 +365,49 @@ CBOE_URLS = [
 ]
 CBOE_FIELDS = ["date", "total_pc", "equity_pc", "index_pc", "fetched_utc"]
 
-# ── 원인 가르기 시험 (2026-09-23 추가) ──────────────────────────────────
-# 2026-09-22 첫 러너 실행에서 위 세 주소가 모두 HTTP 403 을 받았다.
-# 403 의 원인 후보는 셋이다.
-#   (가) 주소가 틀렸다 — 파일 서버(클라우드 저장소형)는 없는 파일에 404 대신
-#        403 을 돌려주는 일이 흔하다.
-#   (나) CBOE 가 이 수집기의 사용자 에이전트(봇처럼 보이는 UA)를 막는다.
-#   (다) CBOE 가 GitHub 러너의 IP(데이터센터)를 통째로 막는다.
-# 판정표 — 확실히 있는 파일(VIX_History.csv)을 두 가지 UA 로 불러 본다.
-#   VIX·봇UA 성공                         → (다) 아님. 풋콜 403 은 (가) 주소 문제
-#   VIX·봇UA 실패 · VIX·브라우저UA 성공    → (나) UA 문제 → UA 만 바꾸면 된다
-#   VIX 둘 다 실패                         → (다) IP 차단 → 다른 소스로 바꿔야 한다
-# 응답 본문 앞부분도 남긴다 — «<Error><Code>AccessDenied» 면 저장소가 없는 파일에
-# 답한 것이고, HTML 차단 페이지면 방화벽이 막은 것이다.
-# 이 시험은 알람을 만들지 않는다(기록만). 원인이 가려지면 이 블록은 지운다.
+# ── 공식 일일 통계 페이지 시험 (2026-09-24 · 89차) ─────────────────────────
+# 2026-09-23 의 «원인 가르기 시험»은 결론을 냈다(주소 문제 · IP·UA 차단 아님)
+# — 그 블록은 지웠다. 이제 재는 것은 «공식 일일 시장 통계 웹페이지를 러너가 읽을
+# 수 있는가, 화면에서 전체·지수·개별주식 풋콜 비율 세 값이 뽑히는가»다.
+#   page_today  날짜 지정 없이 부른 페이지
+#   page_dt     ?dt=<직전 평일> 로 부른 페이지 — 날짜를 바꾸면 값이 바뀌는지 본다
+# 기록만 한다(status=PROBE · 알람 없음). 기록 칸 — HTTP 코드 · 바이트 수 · 뽑힌 세 값 ·
+# 페이지 안의 날짜 모양 문자열 · 자료 주소로 보이는 문자열(json·csv·api) 최대 3개.
+# 판정은 다음 대화 창이 한다. 결론이 나면 이 블록은 지운다.
 BROWSER_UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
               "(KHTML, like Gecko) Chrome/128.0 Safari/537.36")
-CBOE_PROBES = [
-    ("vix_botua", "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX_History.csv", UA),
-    ("vix_browserua", "https://cdn.cboe.com/api/global/us_indices/daily_prices/VIX_History.csv", BROWSER_UA),
-    ("totalpc_browserua", CBOE_URLS[0][1], BROWSER_UA),
-]
+CBOE_DAILY_PAGE = "https://www.cboe.com/us/options/market_statistics/daily/"
+PC_LABELS = (("total", "TOTAL PUT/CALL RATIO"),
+             ("index", "INDEX PUT/CALL RATIO"),
+             ("equity", "EQUITY PUT/CALL RATIO"))
+
+
+def _prev_weekday_iso():
+    from datetime import timedelta
+    d = datetime.now(timezone.utc).date() - timedelta(days=1)
+    while d.weekday() >= 5:
+        d -= timedelta(days=1)
+    return d.isoformat()
+
+
+def _page_summary(html):
+    """HTML 에서 세 비율 · 날짜 모양 문자열 · 자료 주소 후보를 뽑아 한 줄로 만든다."""
+    import re
+    text = re.sub(r"<script[\s\S]*?</script>|<style[\s\S]*?</style>", " ", html, flags=re.I)
+    text = re.sub(r"<[^>]+>", " ", text)
+    text = " ".join(text.split())
+    vals = []
+    for key, label in PC_LABELS:
+        m = re.search(re.escape(label) + r"\s*:?\s*([0-9]+\.[0-9]+)", text, flags=re.I)
+        vals.append(f"{key}={m.group(1) if m else 'NA'}")
+    dates = re.findall(r"\b(20[0-9]{2}-[01][0-9]-[0-3][0-9]|[A-Z][a-z]+ [0-9]{1,2}, 20[0-9]{2})\b", text)
+    urls = re.findall(r"https?://[^\s\"'<>]+?(?:\.json|\.csv|/api/[^\s\"'<>]*|daily_options)[^\s\"'<>]*", html)
+    uniq = []
+    for u in urls:
+        if u not in uniq:
+            uniq.append(u)
+    return (" ".join(vals) + f" · dates={'|'.join(dict.fromkeys(dates[:3])) or '-'}"
+            + f" · urls={'|'.join(uniq[:3]) or '-'}")
 
 
 def _probe_once(url, ua, timeout=30):
@@ -400,11 +428,23 @@ def _probe_once(url, ua, timeout=30):
 
 
 def probe_cboe():
-    for name, url, ua in CBOE_PROBES:
-        code, server, body = _probe_once(url, ua)
-        snippet = body.decode("utf-8", errors="replace")[:120]
-        snippet = " ".join(snippet.split())  # 줄바꿈 제거 — CSV 한 칸에 들어가게
-        record(f"cboe_probe_{name}", "PROBE", f"HTTP {code} · server={server or '-'} · {snippet}")
+    for name, url in (("page_today", CBOE_DAILY_PAGE),
+                      ("page_dt", CBOE_DAILY_PAGE + "?dt=" + _prev_weekday_iso())):
+        code, server, head = _probe_once(url, BROWSER_UA)
+        # 200 이 아니면 응답 본문 앞부분(연결 실패면 오류 문구)을 남긴다
+        summary = " ".join(head.decode("utf-8", errors="replace")[:120].split()) or "-"
+        nbytes = 0
+        if code == 200:
+            try:
+                req = urllib.request.Request(url, headers={"User-Agent": BROWSER_UA, "Accept": "text/html"})
+                with urllib.request.urlopen(req, timeout=30) as r:
+                    raw = r.read()
+                nbytes = len(raw)
+                summary = _page_summary(raw.decode("utf-8", errors="replace"))
+            except Exception as e:  # noqa: BLE001
+                summary = f"본문 읽기 실패 {type(e).__name__} {e}"
+        record(f"cboe_probe_{name}", "PROBE",
+               f"HTTP {code} · server={server or '-'} · bytes={nbytes} · {summary}"[:600])
 
 
 def fetch_cboe():
