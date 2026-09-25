@@ -39,3 +39,9 @@ run_utc,source,status,rows,added,changed,detail
 2026-09-24T22:40:23Z,cboe_page,OK,,,,total=0.86 index=1.04 equity=0.46 · 2026-09-24 18:40 ET · 규칙 after_close · 매긴 날짜 2026-09-24 · 페이지 날짜 모양 2026-09-23|2019-10-07 · bytes=447545
 2026-09-24T22:40:23Z,cboe_probe_dt,PROBE,,,,dt=2026-09-21 · total=0.74 index=0.80 equity=0.53 · 오늘 화면과 다름
 2026-09-24T22:40:23Z,cboe_store,NOTE,,,,저장 안 함 — 세 값이 마지막 행(2026-09-23)과 같다 · 휴장일이거나 화면 갱신 전으로 본다
+2026-09-25T20:34:51Z,cftc_legacy,OK,,,,700행 수신 (최신 2026-09-22)
+2026-09-25T20:34:51Z,cftc_tff,OK,,,,700행 수신 (최신 2026-09-22)
+2026-09-25T20:34:51Z,cftc_merge,OK,701,1,0,cftc_es.csv 전체 701행
+2026-09-25T20:34:51Z,finra,OK,356,0,0,최신 2026-08 · 전체 356행
+2026-09-25T20:34:51Z,cboe_page,OK,,,,total=0.80 index=0.87 equity=0.55 · 2026-09-25 16:34 ET · 부른 날짜 2026-09-24 · no_data 문구 없음 · 페이지 날짜 모양 2026-09-24|2019-10-07 · bytes=447600
+2026-09-25T20:34:51Z,cboe_merge,OK,2,1,0,2026-09-24 저장 · cboe_putcall.csv 전체 2행
