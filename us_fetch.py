@@ -360,28 +360,26 @@ def fetch_finra():
 #    화면 글자에서 TOTAL / INDEX / EQUITY PUT/CALL RATIO 세 값(0.86 · 1.04 · 0.46)이 뽑혔고,
 #    9/23 의 전체·개별주식 값이 YCharts 와 일치했다(지수 값은 대조하지 않았다).
 #
-# 날짜를 어떻게 매기나 — 페이지 화면 글자에 날짜가 없다(위 시험 · dates=-).
-#    그래서 «실행 시각»으로 매긴다. 기준은 미국 동부 시각(ET · 서머타임 자동 반영)이다.
-#      ㉮ 평일 17:00 ET 이후 실행   → 그날   (장 마감 16:00 ET 뒤 1시간 이상 지남)
-#      ㉯ 09:00 ET 이전 실행       → 직전 평일 (장 시작 전에는 직전 거래일 값을 보여 준다 — 위 시험)
-#      ㉰ 토·일 실행                → 직전 금요일
-#      ㉱ 평일 09:00~17:00 ET      → 저장하지 않는다 (장중·마감 직후 — 화면 값이 어느 날 것인지 모른다)
-#    매일 22:30 UTC 실행(07:30 KST)은 18:30 EDT · 17:30 EST 라서 ㉮ 에 든다.
-#    금요일 추가 실행(20:30 UTC = 16:30 EDT · 15:30 EST)은 ㉱ 라서 저장하지 않는다.
-#    ⚠️ ㉮ 의 «17:00 ET 이후면 그날 마감 값을 보여 준다»는 «미시험»이다. 첫 며칠은 대화 창이
-#       다른 자료처(YCharts 등)와 날짜별로 대조해 하루 밀림이 없는지 확인한다.
-#    휴장일 — 목록을 두지 않는다. 휴장일에는 화면이 직전 거래일 값을 그대로 보여 줄 것이므로,
-#       세 값이 이 파일의 마지막 행과 «셋 다 같으면» 저장하지 않고 NOTE 로 남긴다.
-#       화면 갱신이 늦은 날도 같은 길로 걸러진다. 다음 날 아침(㉯) 실행이 있으면 그 행을 바로잡는다.
+# 날짜를 어떻게 정하나 [2026-09-25 · 94차 수정 — 사용자 결정 «가»]
+#    주소 끝에 ?dt=YYYY-MM-DD 를 붙여 «그 날짜의 통계»를 직접 부르고, 그 날짜로 저장한다.
+#    실행 시각으로 날짜를 짐작하지 않는다.
+#      부르는 날짜 = 실행 시각(미국 동부 · ET)의 «직전 평일» 하나.
+#      매일 22:30 UTC 실행(07:30 KST · 18:30 EDT)은 그 전 평일의 통계를 받는다 — 값은 늘 하루 늦게 들어온다.
+#    왜 바꿨나 — 종전 규칙 «평일 17:00 ET 이후면 페이지가 그날 값을 보여 준다»가 틀렸다.
+#      첫 정기 실행(2026-09-24 18:40 ET)에 페이지는 아직 9/23 값을 보여 주었고(화면의 날짜 모양 2026-09-23),
+#      같은 날 20:28 ET 에 ?dt=2026-09-24 는 «No data available for the selected date» 였다(YCharts 도 9/24 미발표).
+#      그대로 두었으면 다음 날 실행이 9/24 값에 9/25 날짜를 붙여 저장했을 것이다.
+#    ?dt= 가 그 날짜 값을 주는가 — 2026-09-24 러너 시험: dt=2026-09-18 → 주식 0.58 · dt=2026-09-21 → 주식 0.53,
+#      둘 다 YCharts 의 같은 날짜 값과 일치했다(대화 창 대조). 그래서 종전의 ?dt= 시험 줄(PROBE)은 지웠다.
+#    휴장일·미발표 — 세 값이 안 뽑히고 페이지에 «No data available» 문구가 있으면 저장하지 않고 NOTE 로 남긴다(알람 아님).
+#      휴장일 목록은 두지 않는다.
+#    안전줄 — 받은 세 값이 이 파일의 «다른 날짜» 행과 셋 다 같으면(주소의 날짜가 무시되고 다른 날 화면이 왔을 수 있다)
+#      저장하지 않고 NOTE 로 남긴다.
+#    지난 날짜 소급 — 하지 않는다(사용자 결정 대기 · 미결 C-121). 한 실행에 한 날짜만 부른다.
 #
 # 실패를 어떻게 알리나
-#    페이지를 못 받거나, 세 값 중 하나라도 안 뽑히면 run_alarm.txt 에 남긴다(빨간불).
+#    페이지를 못 받거나, «No data» 문구도 없는데 세 값 중 하나라도 안 뽑히면 run_alarm.txt 에 남긴다(빨간불).
 #    조용히 틀린 값을 쌓지 않는다 — 세 값이 다 뽑힌 실행만 한 행을 쓴다.
-#
-# 시험 한 줄(PROBE · 알람 없음) — ?dt= 로 지난 날짜를 부를 수 있는가
-#    매 실행 ?dt=<매긴 날짜보다 3평일 앞> 으로 한 번 더 불러 세 값을 기록한다.
-#    값이 오늘 화면과 다르면 지난 날짜를 부를 수 있다는 뜻이다(소급 수집이 가능해진다).
-#    판정은 대화 창이 한다. 결론이 나면 이 시험은 지운다.
 #
 # 그동안에도 풋콜은 세션의 알파밴티지 도구(HISTORICAL_PUT_CALL_RATIO · SPY)가 따로 맡는다.
 BROWSER_UA = ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
@@ -393,6 +391,7 @@ PC_LABELS = (("total", "TOTAL PUT/CALL RATIO"),
 CBOE_FIELDS = ["date", "total_pc", "equity_pc", "index_pc", "fetched_utc"]
 CBOE_CSV = os.path.join(OUT_DIR, "cboe_putcall.csv")
 MARKET_TZ = "America/New_York"
+NO_DATA_MARK = "No data available"
 
 
 def _cboe_page(url, timeout=60, retries=3):
@@ -432,20 +431,11 @@ def _date_strings(html, limit=5):
     return list(dict.fromkeys(found))[:limit]
 
 
-def _label_date(now_utc=None):
-    """실행 시각으로 날짜를 매긴다(위 ㉮~㉱). 반환 — (날짜 ISO 또는 None, 규칙 이름, ET 시각 문자열)"""
-    from datetime import timedelta
+def _target_date(now_utc=None):
+    """부를 날짜 — 실행 시각(ET)의 직전 평일. 반환 — (날짜 ISO, ET 시각 문자열)"""
     from zoneinfo import ZoneInfo
     et = (now_utc or datetime.now(timezone.utc)).astimezone(ZoneInfo(MARKET_TZ))
-    d = et.date()
-    stamp = et.strftime("%Y-%m-%d %H:%M ET")
-    if d.weekday() >= 5:                       # 토(5)·일(6) → 직전 금요일
-        return ((d - timedelta(days=d.weekday() - 4)).isoformat(), "weekend", stamp)
-    if et.hour >= 17:
-        return (d.isoformat(), "after_close", stamp)
-    if et.hour < 9:
-        return (_weekdays_before(d.isoformat(), 1), "before_open", stamp)
-    return (None, "market_hours", stamp)
+    return (_weekdays_before(et.date().isoformat(), 1), et.strftime("%Y-%m-%d %H:%M ET"))
 
 
 def _weekdays_before(iso, n):
@@ -467,52 +457,52 @@ def _last_row(path):
     return max(rows, key=lambda r: r["date"]) if rows else None
 
 
+def _same_values_other_date(path, day, vals):
+    """세 값이 day 가 아닌 다른 날짜 행과 셋 다 같으면 그 날짜를, 아니면 None 을 돌려준다."""
+    if not os.path.exists(path):
+        return None
+    with open(path, "r", encoding="utf-8", newline="") as f:
+        for r in csv.DictReader(f):
+            if r.get("date") != day and all(str(r.get(f"{k}_pc", "")) == vals[k] for k, _ in PC_LABELS):
+                return r.get("date")
+    return None
+
+
 def fetch_cboe(now_utc=None):
-    label, rule, stamp = _label_date(now_utc)
+    day, stamp = _target_date(now_utc)
     try:
-        html = _cboe_page(CBOE_DAILY_PAGE)
+        html = _cboe_page(CBOE_DAILY_PAGE + "?dt=" + day)
     except Exception as e:  # noqa: BLE001
-        record("cboe_page", "FAIL", f"{type(e).__name__} {e}"[:600])
-        alarms.append(f"cboe: 일일 통계 페이지를 받지 못했다 — {type(e).__name__} {e}")
+        record("cboe_page", "FAIL", f"dt={day} · {type(e).__name__} {e}"[:600])
+        alarms.append(f"cboe: 일일 통계 페이지({day})를 받지 못했다 — {type(e).__name__} {e}")
         return
 
     vals = _pc_values(html)
+    nodata = NO_DATA_MARK.lower() in html.lower()
     got = " ".join(f"{k}={vals.get(k, 'NA')}" for k, _ in PC_LABELS)
-    ctx = (f"{stamp} · 규칙 {rule} · 매긴 날짜 {label or '-'} · "
+    ctx = (f"{stamp} · 부른 날짜 {day} · no_data 문구 {'있음' if nodata else '없음'} · "
            f"페이지 날짜 모양 {'|'.join(_date_strings(html)) or '-'} · bytes={len(html)}")
     missing = [k for k, _ in PC_LABELS if k not in vals]
     if missing:
+        if nodata:
+            record("cboe_page", "NOTE", f"저장 안 함 — {day} 자료 없음(휴장일 또는 미발표) · {got} · {ctx}"[:600])
+            return
         record("cboe_page", "FAIL", f"{got} · {ctx}"[:600])
-        alarms.append(f"cboe: 페이지에서 {'·'.join(missing)} 비율을 뽑지 못했다 — 화면 문구가 바뀌었을 수 있다")
+        alarms.append(f"cboe: {day} 페이지에서 {'·'.join(missing)} 비율을 뽑지 못했다 — 화면 문구가 바뀌었을 수 있다")
         return
     record("cboe_page", "OK", f"{got} · {ctx}"[:600])
 
-    # 시험 한 줄 — 지난 날짜를 부를 수 있는가(알람 없음)
-    probe_day = _weekdays_before(label or stamp[:10], 3)
-    try:
-        pv = _pc_values(_cboe_page(CBOE_DAILY_PAGE + "?dt=" + probe_day, retries=1))
-        same = all(pv.get(k) == vals[k] for k, _ in PC_LABELS)
-        record("cboe_probe_dt", "PROBE",
-               f"dt={probe_day} · " + " ".join(f"{k}={pv.get(k, 'NA')}" for k, _ in PC_LABELS)
-               + f" · 오늘 화면과 {'같음' if same else '다름'}")
-    except Exception as e:  # noqa: BLE001
-        record("cboe_probe_dt", "PROBE", f"dt={probe_day} · 실패 {type(e).__name__} {e}"[:600])
-
-    if label is None:
-        record("cboe_store", "NOTE", f"저장 안 함 — {stamp} 는 장중·마감 직후라 화면 값의 날짜를 정할 수 없다")
-        return
-
-    last = _last_row(CBOE_CSV)
-    if last and last["date"] < label and all(str(last.get(f"{k}_pc", "")) == vals[k] for k, _ in PC_LABELS):
+    other = _same_values_other_date(CBOE_CSV, day, vals)
+    if other:
         record("cboe_store", "NOTE",
-               f"저장 안 함 — 세 값이 마지막 행({last['date']})과 같다 · 휴장일이거나 화면 갱신 전으로 본다")
+               f"저장 안 함 — {day} 의 세 값이 다른 날짜 행({other})과 같다 · 주소의 날짜가 무시됐을 수 있다")
         return
 
-    row = {"date": label, "fetched_utc": RUN_UTC}
+    row = {"date": day, "fetched_utc": RUN_UTC}
     for k, _ in PC_LABELS:
         row[f"{k}_pc"] = vals[k]
     total, added, changed = merge_csv(CBOE_CSV, CBOE_FIELDS, [row], "date")
-    record("cboe_merge", "OK", f"{label} 저장 · cboe_putcall.csv 전체 {total}행", total, added, changed)
+    record("cboe_merge", "OK", f"{day} 저장 · cboe_putcall.csv 전체 {total}행", total, added, changed)
 
 
 def main():
