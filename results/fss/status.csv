@@ -1,8 +1,27 @@
 op,code,rows,note,run_at_kst
-getGrantingOfCreditBalanceInfo,EXC URLError: <urlopen error timed out>,0,page1 실패,2026-10-02 03:43
-NETWORK,DOWN,0,"연속 타임아웃 4회 — 포털 도달 불가로 판정, 남은 호출 생략. 같은 키가 다른 경로에서 동작하는지 확인할 것",2026-10-02 03:43
-getSecuritiesMarketTotalCapitalInfo,EXC URLError: <urlopen error timed out>,0,page1 실패,2026-10-02 03:43
-getCMAStatus,SKIP 포털 도달 불가(조기 중단),0,page1 실패,2026-10-02 03:43
-getETFPriceInfo,SKIP 포털 도달 불가(조기 중단),0,basDt=20261001 page=1 실패 — 이 날짜는 쓰지 않는다,2026-10-02 03:43
-getETFPriceInfo,SKIP 포털 도달 불가(조기 중단),0,basDt=20260930 page=1 실패 — 이 날짜는 쓰지 않는다,2026-10-02 03:43
-ETF백필,-,0,대상 0일 중 0일 채움 · 남은 빈 날짜 79일 · 건너뛰기 1일 · 중단(최신일 조회가 연속 실패),2026-10-02 03:43
+getGrantingOfCreditBalanceInfo,00,420,total=1195 최신=20260930 정렬=최신순 페이지=1 경계버림=20250109,2026-10-02 10:42
+getSecuritiesMarketTotalCapitalInfo,00,420,total=1208 최신=20260930 정렬=최신순 페이지=1 경계버림=20250109,2026-10-02 10:42
+getCMAStatus,00,420,total=14496 최신=20260930 정렬=최신순 페이지=6 경계버림=20250109,2026-10-02 10:42
+getCMAStatus:합계행,-,419,날짜 419개 중 합계행 사용 419개,2026-10-02 10:42
+getETFPriceInfo,00,1171,basDt=20261001 레버리지 3356346178916,2026-10-02 10:42
+getETFPriceInfo,00,973,basDt=20250508 레버리지 436631953379,2026-10-02 10:42
+getETFPriceInfo,00,973,basDt=20250507 레버리지 478692088731,2026-10-02 10:42
+getETFPriceInfo,00,973,basDt=20250502 레버리지 478808273534,2026-10-02 10:42
+getETFPriceInfo,00,973,basDt=20250430 레버리지 483339079708,2026-10-02 10:42
+getETFPriceInfo,00,973,basDt=20250429 레버리지 457881042214,2026-10-02 10:42
+getETFPriceInfo,00,971,basDt=20250428 레버리지 448739404891,2026-10-02 10:42
+getETFPriceInfo,00,971,basDt=20250425 레버리지 649120588341,2026-10-02 10:42
+getETFPriceInfo,00,971,basDt=20250424 레버리지 491005112645,2026-10-02 10:42
+getETFPriceInfo,00,972,basDt=20250423 레버리지 595541434898,2026-10-02 10:42
+getETFPriceInfo,00,972,basDt=20250422 레버리지 378346242044,2026-10-02 10:42
+getETFPriceInfo,00,965,basDt=20250421 레버리지 450871333565,2026-10-02 10:42
+getETFPriceInfo,00,965,basDt=20250418 레버리지 419685300663,2026-10-02 10:42
+getETFPriceInfo,00,965,basDt=20250417 레버리지 472618912836,2026-10-02 10:42
+getETFPriceInfo,00,965,basDt=20250416 레버리지 501424811086,2026-10-02 10:42
+getETFPriceInfo,00,965,basDt=20250415 레버리지 491097826496,2026-10-02 10:42
+getETFPriceInfo,00,962,basDt=20250414 레버리지 582086070954,2026-10-02 10:42
+getETFPriceInfo,00,962,basDt=20250411 레버리지 758011270788,2026-10-02 10:42
+getETFPriceInfo,00,962,basDt=20250410 레버리지 1081837544277,2026-10-02 10:42
+getETFPriceInfo,00,962,basDt=20250409 레버리지 1101279208113,2026-10-02 10:42
+getETFPriceInfo,00,962,basDt=20250408 레버리지 1064548844596,2026-10-02 10:42
+ETF백필,-,20,대상 20일 중 20일 채움 · 남은 빈 날짜 58일 · 건너뛰기 1일,2026-10-02 10:42
