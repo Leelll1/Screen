@@ -1,26 +1,9 @@
 op,code,rows,note,run_at_kst
-getGrantingOfCreditBalanceInfo,00,420,total=1195 최신=20260930 정렬=최신순 페이지=1 경계버림=20250109,2026-10-03 10:12
-getSecuritiesMarketTotalCapitalInfo,00,420,total=1208 최신=20260930 정렬=최신순 페이지=1 경계버림=20250109,2026-10-03 10:12
-getCMAStatus,00,420,total=14496 최신=20260930 정렬=최신순 페이지=6 경계버림=20250109,2026-10-03 10:12
-getCMAStatus:합계행,-,419,날짜 419개 중 합계행 사용 419개,2026-10-03 10:12
-getETFPriceInfo,EMPTY,0,basDt=20261002 0행 — 미공개(D+1 규칙) 또는 휴장,2026-10-03 10:12
-getETFPriceInfo,00,1171,basDt=20261001 레버리지 3356346178916,2026-10-03 10:12
-getETFPriceInfo,00,941,basDt=20250207 레버리지 370802840129,2026-10-03 10:12
-getETFPriceInfo,00,941,basDt=20250206 레버리지 398225537371,2026-10-03 10:12
-getETFPriceInfo,00,941,basDt=20250205 레버리지 443196969065,2026-10-03 10:12
-getETFPriceInfo,00,941,basDt=20250204 레버리지 699809506969,2026-10-03 10:12
-getETFPriceInfo,00,941,basDt=20250203 레버리지 674459822446,2026-10-03 10:12
-getETFPriceInfo,00,941,basDt=20250131 레버리지 521980717457,2026-10-03 10:12
-getETFPriceInfo,00,941,basDt=20250124 레버리지 450180625572,2026-10-03 10:12
-getETFPriceInfo,00,941,basDt=20250123 레버리지 411443678641,2026-10-03 10:12
-getETFPriceInfo,00,941,basDt=20250122 레버리지 533969103817,2026-10-03 10:12
-getETFPriceInfo,00,944,basDt=20250121 레버리지 647311909748,2026-10-03 10:12
-getETFPriceInfo,00,939,basDt=20250120 레버리지 435346314005,2026-10-03 10:12
-getETFPriceInfo,00,939,basDt=20250117 레버리지 362333325935,2026-10-03 10:12
-getETFPriceInfo,00,940,basDt=20250116 레버리지 524480515728,2026-10-03 10:12
-getETFPriceInfo,00,940,basDt=20250115 레버리지 456901525741,2026-10-03 10:12
-getETFPriceInfo,00,940,basDt=20250114 레버리지 440461291642,2026-10-03 10:12
-getETFPriceInfo,00,937,basDt=20250113 레버리지 453434332273,2026-10-03 10:12
-getETFPriceInfo,00,937,basDt=20250110 레버리지 381062805374,2026-10-03 10:12
-getETFPriceInfo,00,937,basDt=20250109 레버리지 544596317690,2026-10-03 10:12
-ETF백필,-,18,대상 18일 중 18일 채움 · 남은 빈 날짜 0일 · 건너뛰기 1일,2026-10-03 10:12
+getGrantingOfCreditBalanceInfo,EXC URLError: <urlopen error timed out>,0,page1 실패,2026-10-05 20:56
+NETWORK,DOWN,0,"연속 타임아웃 4회 — 포털 도달 불가로 판정, 남은 호출 생략. 같은 키가 다른 경로에서 동작하는지 확인할 것",2026-10-05 20:56
+getSecuritiesMarketTotalCapitalInfo,EXC URLError: <urlopen error timed out>,0,page1 실패,2026-10-05 20:56
+getCMAStatus,SKIP 포털 도달 불가(조기 중단),0,page1 실패,2026-10-05 20:56
+getETFPriceInfo,SKIP 포털 도달 불가(조기 중단),0,basDt=20261002 page=1 실패 — 이 날짜는 쓰지 않는다,2026-10-05 20:56
+getETFPriceInfo,SKIP 포털 도달 불가(조기 중단),0,basDt=20261001 page=1 실패 — 이 날짜는 쓰지 않는다,2026-10-05 20:56
+ETF백필,-,0,대상 0일 중 0일 채움 · 남은 빈 날짜 0일 · 건너뛰기 1일 · 중단(최신일 조회가 연속 실패),2026-10-05 20:56
+getItemInfo,SKIP 포털 도달 불가(조기 중단),0,basDt=20261002 page=1,2026-10-05 20:56
