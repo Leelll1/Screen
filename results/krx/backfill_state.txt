@@ -1,5 +1,5 @@
-as_of=2026-10-06T11:36:29+00:00
-bas_dd=20261005
+as_of=2026-10-06T18:49:07+00:00
+bas_dd=20261006
 target=245
 complete_rows=101
 vkospi_rows=102
