@@ -1,9 +1,9 @@
 op,code,rows,note,run_at_kst
-getGrantingOfCreditBalanceInfo,00,420,total=1196 최신=20261001 정렬=최신순 페이지=1 경계버림=20250110,2026-10-07 03:49
-getSecuritiesMarketTotalCapitalInfo,00,420,total=1209 최신=20261001 정렬=최신순 페이지=1 경계버림=20250110,2026-10-07 03:49
-getCMAStatus,00,420,total=14508 최신=20261001 정렬=최신순 페이지=6 경계버림=20250110,2026-10-07 03:49
-getCMAStatus:합계행,-,419,날짜 419개 중 합계행 사용 419개,2026-10-07 03:49
-getETFPriceInfo,EMPTY,0,basDt=20261006 0행 — 미공개(D+1 규칙) 또는 휴장,2026-10-07 03:49
-getETFPriceInfo,EMPTY,0,basDt=20261005 0행 — 미공개(D+1 규칙) 또는 휴장,2026-10-07 03:49
-getETFPriceInfo,00,1171,basDt=20261002 레버리지 3293168424104,2026-10-07 03:49
-ETF백필,-,0,대상 0일 중 0일 채움 · 남은 빈 날짜 0일 · 건너뛰기 1일,2026-10-07 03:49
+getGrantingOfCreditBalanceInfo,00,420,total=1197 최신=20261002 정렬=최신순 페이지=1 경계버림=20250113,2026-10-07 10:33
+getSecuritiesMarketTotalCapitalInfo,00,420,total=1210 최신=20261002 정렬=최신순 페이지=1 경계버림=20250113,2026-10-07 10:33
+getCMAStatus,00,420,total=14520 최신=20261002 정렬=최신순 페이지=6 경계버림=20250113,2026-10-07 10:33
+getCMAStatus:합계행,-,419,날짜 419개 중 합계행 사용 419개,2026-10-07 10:33
+getETFPriceInfo,EMPTY,0,basDt=20261006 0행 — 미공개(D+1 규칙) 또는 휴장,2026-10-07 10:33
+getETFPriceInfo,EMPTY,0,basDt=20261005 0행 — 미공개(D+1 규칙) 또는 휴장,2026-10-07 10:33
+getETFPriceInfo,00,1171,basDt=20261002 레버리지 3293168424104,2026-10-07 10:33
+ETF백필,-,0,대상 0일 중 0일 채움 · 남은 빈 날짜 0일 · 건너뛰기 1일,2026-10-07 10:33
