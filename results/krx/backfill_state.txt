@@ -1,12 +1,12 @@
-as_of=2026-10-14T17:49:20+00:00
+as_of=2026-10-15T00:32:58+00:00
 bas_dd=20261014
 target=245
-complete_rows=106
-vkospi_rows=107
+complete_rows=107
+vkospi_rows=108
 pending_targets=5
 filled_this_run=0
 dead_holiday=0
-dead_incomplete=5
+dead_incomplete=6
 horizon_days=540
 status=NO_PROGRESS
 note=후보는 있는데 한 날짜도 채우지 못했다.
