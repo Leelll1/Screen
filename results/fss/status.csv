@@ -1,8 +1,7 @@
 op,code,rows,note,run_at_kst
-getGrantingOfCreditBalanceInfo,EXC URLError: <urlopen error timed out>,0,page1 실패,2026-10-20 10:06
-NETWORK,DOWN,0,"연속 타임아웃 4회 — 포털 도달 불가로 판정, 남은 호출 생략. 같은 키가 다른 경로에서 동작하는지 확인할 것",2026-10-20 10:06
-getSecuritiesMarketTotalCapitalInfo,EXC URLError: <urlopen error timed out>,0,page1 실패,2026-10-20 10:06
-getCMAStatus,SKIP 포털 도달 불가(조기 중단),0,page1 실패,2026-10-20 10:06
-getETFPriceInfo,SKIP 포털 도달 불가(조기 중단),0,basDt=20261019 page=1 실패 — 이 날짜는 쓰지 않는다,2026-10-20 10:06
-getETFPriceInfo,SKIP 포털 도달 불가(조기 중단),0,basDt=20261016 page=1 실패 — 이 날짜는 쓰지 않는다,2026-10-20 10:06
-ETF백필,-,0,대상 0일 중 0일 채움 · 남은 빈 날짜 0일 · 건너뛰기 1일 · 중단(최신일 조회가 연속 실패),2026-10-20 10:06
+getGrantingOfCreditBalanceInfo,00,420,total=1205 최신=20261016 정렬=최신순 페이지=1 경계버림=20250123,2026-10-20 18:43
+getSecuritiesMarketTotalCapitalInfo,00,420,total=1218 최신=20261016 정렬=최신순 페이지=1 경계버림=20250123,2026-10-20 18:43
+getCMAStatus,00,420,total=14616 최신=20261016 정렬=최신순 페이지=6 경계버림=20250123,2026-10-20 18:43
+getCMAStatus:합계행,-,419,날짜 419개 중 합계행 사용 419개,2026-10-20 18:43
+getETFPriceInfo,00,1176,basDt=20261019 레버리지 3709571615441,2026-10-20 18:43
+ETF백필,-,0,대상 0일 중 0일 채움 · 남은 빈 날짜 0일 · 건너뛰기 1일,2026-10-20 18:43
