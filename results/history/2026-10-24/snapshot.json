@@ -1,0 +1,45 @@
+{
+ "run_date": "2026-10-24",
+ "quarter": "CY2026Q2",
+ "prior": "CY2025Q2",
+ "fetch_failures": [],
+ "duration_filtered": [
+  "RevenueFromContractWithCustomerExcludingAssessedTax@CY2026Q2:12",
+  "Revenues@CY2026Q2:7",
+  "RevenueFromContractWithCustomerExcludingAssessedTax@CY2025Q2:11",
+  "Revenues@CY2025Q2:8",
+  "OperatingIncomeLoss@CY2026Q2:17",
+  "OperatingIncomeLoss@CY2025Q2:21",
+  "NetIncomeLoss@CY2026Q2:25",
+  "NetIncomeLoss@CY2025Q2:24"
+ ],
+ "density_guard": {
+  "checked": true,
+  "alert": false,
+  "prior_run_date": "2026-10-17",
+  "detail": [],
+  "blocking_detail": []
+ },
+ "coverage_rev_cur": {
+  "RevenueFromContractWithCustomerExcludingAssessedTax": 2294,
+  "Revenues": 1655,
+  "RevenueFromContractWithCustomerIncludingAssessedTax": 451
+ },
+ "coverage_rev_prior": {
+  "RevenueFromContractWithCustomerExcludingAssessedTax": 2554,
+  "Revenues": 1933,
+  "RevenueFromContractWithCustomerIncludingAssessedTax": 545
+ },
+ "n_rev_merged": 3775,
+ "n_op": 3982,
+ "n_ni": 4928,
+ "n_universe": 2135,
+ "n_pool": 415,
+ "params": {
+  "min_rev": "20M",
+  "min_op": "3M",
+  "s1": "yoy>=30% & opg>=40%",
+  "s2": "op turn, op>=3M",
+  "s3": "dm>=7pp"
+ }
+}

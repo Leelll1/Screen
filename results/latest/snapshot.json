@@ -1,5 +1,5 @@
 {
- "run_date": "2026-10-17",
+ "run_date": "2026-10-24",
  "quarter": "CY2026Q2",
  "prior": "CY2025Q2",
  "fetch_failures": [],
@@ -16,23 +16,23 @@
  "density_guard": {
   "checked": true,
   "alert": false,
-  "prior_run_date": "2026-10-10",
+  "prior_run_date": "2026-10-17",
   "detail": [],
   "blocking_detail": []
  },
  "coverage_rev_cur": {
-  "RevenueFromContractWithCustomerExcludingAssessedTax": 2291,
-  "Revenues": 1652,
+  "RevenueFromContractWithCustomerExcludingAssessedTax": 2294,
+  "Revenues": 1655,
   "RevenueFromContractWithCustomerIncludingAssessedTax": 451
  },
  "coverage_rev_prior": {
   "RevenueFromContractWithCustomerExcludingAssessedTax": 2554,
   "Revenues": 1933,
-  "RevenueFromContractWithCustomerIncludingAssessedTax": 544
+  "RevenueFromContractWithCustomerIncludingAssessedTax": 545
  },
- "n_rev_merged": 3770,
- "n_op": 3975,
- "n_ni": 4918,
+ "n_rev_merged": 3775,
+ "n_op": 3982,
+ "n_ni": 4928,
  "n_universe": 2135,
  "n_pool": 415,
  "params": {
