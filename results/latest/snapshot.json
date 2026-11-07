@@ -1,40 +1,40 @@
 {
- "run_date": "2026-10-31",
- "quarter": "CY2026Q2",
- "prior": "CY2025Q2",
+ "run_date": "2026-11-07",
+ "quarter": "CY2026Q3",
+ "prior": "CY2025Q3",
  "fetch_failures": [],
  "duration_filtered": [
-  "RevenueFromContractWithCustomerExcludingAssessedTax@CY2026Q2:12",
-  "Revenues@CY2026Q2:7",
-  "RevenueFromContractWithCustomerExcludingAssessedTax@CY2025Q2:11",
-  "Revenues@CY2025Q2:8",
-  "OperatingIncomeLoss@CY2026Q2:17",
-  "OperatingIncomeLoss@CY2025Q2:22",
-  "NetIncomeLoss@CY2026Q2:25",
-  "NetIncomeLoss@CY2025Q2:25"
+  "RevenueFromContractWithCustomerExcludingAssessedTax@CY2026Q3:6",
+  "Revenues@CY2026Q3:3",
+  "RevenueFromContractWithCustomerExcludingAssessedTax@CY2025Q3:14",
+  "Revenues@CY2025Q3:5",
+  "RevenueFromContractWithCustomerIncludingAssessedTax@CY2025Q3:1",
+  "OperatingIncomeLoss@CY2026Q3:9",
+  "OperatingIncomeLoss@CY2025Q3:30",
+  "NetIncomeLoss@CY2026Q3:10",
+  "NetIncomeLoss@CY2025Q3:36"
  ],
  "density_guard": {
-  "checked": true,
+  "checked": false,
   "alert": false,
-  "prior_run_date": "2026-10-24",
-  "detail": [],
-  "blocking_detail": []
+  "blocking_detail": [],
+  "reason": "직전 스냅샷 없음 또는 목표 분기 전환 — 비교 제외"
  },
  "coverage_rev_cur": {
-  "RevenueFromContractWithCustomerExcludingAssessedTax": 2294,
-  "Revenues": 1657,
-  "RevenueFromContractWithCustomerIncludingAssessedTax": 451
+  "RevenueFromContractWithCustomerExcludingAssessedTax": 1448,
+  "Revenues": 914,
+  "RevenueFromContractWithCustomerIncludingAssessedTax": 221
  },
  "coverage_rev_prior": {
-  "RevenueFromContractWithCustomerExcludingAssessedTax": 2554,
-  "Revenues": 1933,
-  "RevenueFromContractWithCustomerIncludingAssessedTax": 545
+  "RevenueFromContractWithCustomerExcludingAssessedTax": 2422,
+  "Revenues": 1828,
+  "RevenueFromContractWithCustomerIncludingAssessedTax": 501
  },
- "n_rev_merged": 3777,
- "n_op": 3987,
- "n_ni": 4934,
- "n_universe": 2135,
- "n_pool": 415,
+ "n_rev_merged": 2208,
+ "n_op": 1986,
+ "n_ni": 2534,
+ "n_universe": 1567,
+ "n_pool": 315,
  "params": {
   "min_rev": "20M",
   "min_op": "3M",
