@@ -1,40 +1,41 @@
 {
- "run_date": "2026-11-07",
+ "run_date": "2026-11-14",
  "quarter": "CY2026Q3",
  "prior": "CY2025Q3",
  "fetch_failures": [],
  "duration_filtered": [
   "RevenueFromContractWithCustomerExcludingAssessedTax@CY2026Q3:6",
-  "Revenues@CY2026Q3:3",
+  "Revenues@CY2026Q3:4",
   "RevenueFromContractWithCustomerExcludingAssessedTax@CY2025Q3:14",
   "Revenues@CY2025Q3:5",
   "RevenueFromContractWithCustomerIncludingAssessedTax@CY2025Q3:1",
-  "OperatingIncomeLoss@CY2026Q3:9",
-  "OperatingIncomeLoss@CY2025Q3:30",
-  "NetIncomeLoss@CY2026Q3:10",
-  "NetIncomeLoss@CY2025Q3:36"
+  "OperatingIncomeLoss@CY2026Q3:10",
+  "OperatingIncomeLoss@CY2025Q3:42",
+  "NetIncomeLoss@CY2026Q3:14",
+  "NetIncomeLoss@CY2025Q3:47"
  ],
  "density_guard": {
-  "checked": false,
+  "checked": true,
   "alert": false,
-  "blocking_detail": [],
-  "reason": "직전 스냅샷 없음 또는 목표 분기 전환 — 비교 제외"
+  "prior_run_date": "2026-11-07",
+  "detail": [],
+  "blocking_detail": []
  },
  "coverage_rev_cur": {
-  "RevenueFromContractWithCustomerExcludingAssessedTax": 1448,
-  "Revenues": 914,
-  "RevenueFromContractWithCustomerIncludingAssessedTax": 221
+  "RevenueFromContractWithCustomerExcludingAssessedTax": 1951,
+  "Revenues": 1302,
+  "RevenueFromContractWithCustomerIncludingAssessedTax": 351
  },
  "coverage_rev_prior": {
-  "RevenueFromContractWithCustomerExcludingAssessedTax": 2422,
-  "Revenues": 1828,
-  "RevenueFromContractWithCustomerIncludingAssessedTax": 501
+  "RevenueFromContractWithCustomerExcludingAssessedTax": 2497,
+  "Revenues": 1886,
+  "RevenueFromContractWithCustomerIncludingAssessedTax": 522
  },
- "n_rev_merged": 2208,
- "n_op": 1986,
- "n_ni": 2534,
- "n_universe": 1567,
- "n_pool": 315,
+ "n_rev_merged": 3092,
+ "n_op": 3093,
+ "n_ni": 3977,
+ "n_universe": 1902,
+ "n_pool": 391,
  "params": {
   "min_rev": "20M",
   "min_op": "3M",
