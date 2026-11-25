@@ -1,8 +1,8 @@
-as_of=2026-11-24T22:56:04+00:00
+as_of=2026-11-25T04:53:59+00:00
 bas_dd=20261124
 target=245
-complete_rows=135
-vkospi_rows=136
+complete_rows=136
+vkospi_rows=137
 pending_targets=5
 filled_this_run=0
 dead_holiday=0
